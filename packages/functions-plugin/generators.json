@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "name": "functions-plugin",
+  "version": "0.0.1",
+  "generators": {
+    "functions-plugin": {
+      "factory": "./src/generators/functions-plugin/generator",
+      "schema": "./src/generators/functions-plugin/schema.json",
+      "description": "functions-plugin generator"
+    }
+  }
+}
