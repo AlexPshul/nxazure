@@ -6,7 +6,7 @@ import {
   uniq,
 } from '@nrwl/nx-plugin/testing';
 
-describe('functions-plugin e2e', () => {
+describe('functions e2e', () => {
   // Setting up individual workspaces per
   // test can cause e2e runs to take a long time.
   // For this reason, we recommend each suite only
@@ -14,10 +14,7 @@ describe('functions-plugin e2e', () => {
   // on a unique project in the workspace, such that they
   // are not dependant on one another.
   beforeAll(() => {
-    ensureNxProject(
-      '@nx-azure/functions-plugin',
-      'dist/packages/functions-plugin'
-    );
+    ensureNxProject('@nx-azure/functions', 'dist/packages/functions');
   });
 
   afterAll(() => {
@@ -26,10 +23,10 @@ describe('functions-plugin e2e', () => {
     runNxCommandAsync('reset');
   });
 
-  it('should create functions-plugin', async () => {
-    const project = uniq('functions-plugin');
+  it('should create functions', async () => {
+    const project = uniq('functions');
     await runNxCommandAsync(
-      `generate @nx-azure/functions-plugin:functions-plugin ${project}`
+      `generate @nx-azure/functions:functions ${project}`
     );
     const result = await runNxCommandAsync(`build ${project}`);
     expect(result.stdout).toContain('Executor ran');
@@ -37,9 +34,9 @@ describe('functions-plugin e2e', () => {
 
   describe('--directory', () => {
     it('should create src in the specified directory', async () => {
-      const project = uniq('functions-plugin');
+      const project = uniq('functions');
       await runNxCommandAsync(
-        `generate @nx-azure/functions-plugin:functions-plugin ${project} --directory subdir`
+        `generate @nx-azure/functions:functions ${project} --directory subdir`
       );
       expect(() =>
         checkFilesExist(`libs/subdir/${project}/src/index.ts`)
@@ -49,13 +46,10 @@ describe('functions-plugin e2e', () => {
 
   describe('--tags', () => {
     it('should add tags to the project', async () => {
-      const projectName = uniq('functions-plugin');
-      ensureNxProject(
-        '@nx-azure/functions-plugin',
-        'dist/packages/functions-plugin'
-      );
+      const projectName = uniq('functions');
+      ensureNxProject('@nx-azure/functions', 'dist/packages/functions');
       await runNxCommandAsync(
-        `generate @nx-azure/functions-plugin:functions-plugin ${projectName} --tags e2etag,e2ePackage`
+        `generate @nx-azure/functions:functions ${projectName} --tags e2etag,e2ePackage`
       );
       const project = readJson(`libs/${projectName}/project.json`);
       expect(project.tags).toEqual(['e2etag', 'e2ePackage']);
