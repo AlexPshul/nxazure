@@ -1,0 +1,26 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+. "$(dirname "$0")/workaround.sh"
+
+export FORCE_COLOR=true
+
+echo "Woof woof"
+echo "Here is a joke, while you wait:"
+joke=$(curl -s "https://geek-jokes.sameerkumar.website/api?format=text")
+echo $joke
+
+if npm run-s lint-staged; then
+  echo "";
+  echo "-------------------------------------------------"
+  echo "🐶   All good, commiting the changes! Woof!    🐶"
+  echo "-------------------------------------------------"
+  echo "";
+else
+  echo "";
+  echo "---------------------------------------"
+  echo "🐶   Looks like eslint failed."
+  echo "🐶   Please fix errors and try again."
+  echo "---------------------------------------"
+  echo "";
+  exit 1;
+fi
