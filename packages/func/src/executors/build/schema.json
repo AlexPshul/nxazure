@@ -5,6 +5,12 @@
   "title": "Build executor",
   "description": "",
   "type": "object",
-  "properties": {},
+  "properties": {
+    "tsConfigPath": {
+      "type": "string",
+      "description": "Path to the tsconfig file to use for the build relative to the project root.",
+      "default": "tsconfig.json"
+    }
+  },
   "required": []
 }

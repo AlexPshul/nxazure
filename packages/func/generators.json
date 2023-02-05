@@ -3,10 +3,15 @@
   "name": "func",
   "version": "0.0.1",
   "generators": {
-    "func": {
-      "factory": "./src/generators/func/generator",
-      "schema": "./src/generators/func/schema.json",
-      "description": "func generator"
+    "init": {
+      "factory": "./src/generators/init/generator",
+      "schema": "./src/generators/init/schema.json",
+      "description": "Initializes a new empty Azure functions app project"
+    },
+    "new": {
+      "factory": "./src/generators/new/generator",
+      "schema": "./src/generators/new/schema.json",
+      "description": "Creates a new function inside an Azure function app project"
     }
   }
 }

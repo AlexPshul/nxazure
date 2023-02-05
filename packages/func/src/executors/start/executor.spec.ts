@@ -1,11 +1,11 @@
-import { BuildExecutorSchema } from './schema';
+import { StartExecutorSchema } from './schema';
 import executor from './executor';
 import { ExecutorContext } from '@nrwl/devkit';
 
-const options: BuildExecutorSchema = {};
+const options: StartExecutorSchema = { port: 7071 };
 const executorContext: ExecutorContext = {} as ExecutorContext;
 
-describe('Build Executor', () => {
+describe('Start Executor', () => {
   it('can run', async () => {
     const output = await executor(options, executorContext);
     expect(output).toHaveProperty('success');

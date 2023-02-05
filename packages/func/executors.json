@@ -1,10 +1,20 @@
 {
   "$schema": "http://json-schema.org/schema",
   "executors": {
+    "start": {
+      "implementation": "./src/executors/start/executor",
+      "schema": "./src/executors/start/schema.json",
+      "description": "Starts the Azure function locally"
+    },
     "build": {
       "implementation": "./src/executors/build/executor",
       "schema": "./src/executors/build/schema.json",
-      "description": "build executor"
+      "description": "Builds the Azure functions project"
+    },
+    "publish": {
+      "implementation": "./src/executors/publish/executor",
+      "schema": "./src/executors/publish/schema.json",
+      "description": "Publishes the Azure function app to the cloud. Requires an Azure Login to be performed before this executor is run."
     }
   }
 }

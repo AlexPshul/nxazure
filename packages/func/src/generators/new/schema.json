@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "cli": "nx",
+  "$id": "New",
+  "title": "",
+  "type": "object",
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "The name of the project.",
+      "alias": "p",
+      "$default": {
+        "$source": "projectName"
+      },
+      "x-prompt": "What is the name of the project for the executor?",
+      "x-priority": "important"
+    },
+    "name": {
+      "type": "string",
+      "description": "The name of the new function",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What is the name of the new function?",
+      "x-priority": "important"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["TypeScript"],
+      "description": "The language to use for the function (Only TypeScript is supported for now)",
+      "default": "TypeScript"
+    },
+    "template": {
+      "type": "string",
+      "enum": [
+        "Azure Blob Storage trigger",
+        "Cosmos DB trigger",
+        "Durable Functions activity",
+        "Durable Functions entity",
+        "Durable Functions Entity HTTP starter",
+        "Durable Functions HTTP starter",
+        "Durable Functions orchestrator",
+        "Azure Event Grid trigger",
+        "Azure Event Hub trigger",
+        "HTTP trigger",
+        "IoT Hub (Event Hub)",
+        "Kafka output",
+        "Kafka trigger",
+        "Azure Queue Storage trigger",
+        "RabbitMQ trigger",
+        "SendGrid",
+        "Azure Service Bus Queue trigger",
+        "Azure Service Bus Topic trigger",
+        "SignalR negotiate HTTP trigger",
+        "Timer trigger"
+      ],
+      "description": "The template to use for the new function.",
+      "x-prompt": "Which template would you like to use to create a new function?",
+      "default": "HTTP trigger"
+    },
+    "authLevel": {
+      "type": "string",
+      "enum": ["anonymous", "function", "admin"],
+      "description": "The authorization level for the new function. (Ignored for non-HTTP triggers)"
+    }
+  },
+  "required": ["project", "name", "template"]
+}

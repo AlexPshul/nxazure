@@ -1,8 +1,5 @@
-import { BuildExecutorSchema } from './schema';
+import { Executor } from '@nrwl/devkit';
+import { build } from '../common/utils';
 
-export default async function runExecutor(options: BuildExecutorSchema) {
-  console.log('Executor ran for Build', options);
-  return {
-    success: true,
-  };
-}
+const executor: Executor = async (_, context) => ({ success: build(context) });
+export default executor;
