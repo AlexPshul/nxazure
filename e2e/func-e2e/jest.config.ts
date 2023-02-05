@@ -1,6 +1,6 @@
 /* eslint-disable */
 export default {
-  displayName: 'functions',
+  displayName: 'func-e2e',
   preset: '../../jest.preset.js',
   globals: {
     'ts-jest': {
@@ -11,5 +11,5 @@ export default {
     '^.+\\.[tj]s$': 'ts-jest',
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/packages/functions',
+  coverageDirectory: '../../coverage/e2e/func-e2e',
 };

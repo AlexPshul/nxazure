@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "name": "func",
+  "version": "0.0.1",
+  "generators": {
+    "func": {
+      "factory": "./src/generators/func/generator",
+      "schema": "./src/generators/func/schema.json",
+      "description": "func generator"
+    }
+  }
+}

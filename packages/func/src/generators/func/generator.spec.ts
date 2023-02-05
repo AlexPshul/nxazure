@@ -2,11 +2,11 @@ import { createTreeWithEmptyWorkspace } from '@nrwl/devkit/testing';
 import { Tree, readProjectConfiguration } from '@nrwl/devkit';
 
 import generator from './generator';
-import { FunctionsGeneratorSchema } from './schema';
+import { FuncGeneratorSchema } from './schema';
 
-describe('functions generator', () => {
+describe('func generator', () => {
   let appTree: Tree;
-  const options: FunctionsGeneratorSchema = { name: 'test' };
+  const options: FuncGeneratorSchema = { name: 'test' };
 
   beforeEach(() => {
     appTree = createTreeWithEmptyWorkspace();

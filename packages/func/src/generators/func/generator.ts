@@ -8,9 +8,9 @@ import {
   Tree,
 } from '@nrwl/devkit';
 import * as path from 'path';
-import { FunctionsGeneratorSchema } from './schema';
+import { FuncGeneratorSchema } from './schema';
 
-interface NormalizedSchema extends FunctionsGeneratorSchema {
+interface NormalizedSchema extends FuncGeneratorSchema {
   projectName: string;
   projectRoot: string;
   projectDirectory: string;
@@ -19,7 +19,7 @@ interface NormalizedSchema extends FunctionsGeneratorSchema {
 
 function normalizeOptions(
   tree: Tree,
-  options: FunctionsGeneratorSchema
+  options: FuncGeneratorSchema
 ): NormalizedSchema {
   const name = names(options.name).fileName;
   const projectDirectory = options.directory
@@ -55,7 +55,7 @@ function addFiles(tree: Tree, options: NormalizedSchema) {
   );
 }
 
-export default async function (tree: Tree, options: FunctionsGeneratorSchema) {
+export default async function (tree: Tree, options: FuncGeneratorSchema) {
   const normalizedOptions = normalizeOptions(tree, options);
   addProjectConfiguration(tree, normalizedOptions.projectName, {
     root: normalizedOptions.projectRoot,
@@ -63,7 +63,7 @@ export default async function (tree: Tree, options: FunctionsGeneratorSchema) {
     sourceRoot: `${normalizedOptions.projectRoot}/src`,
     targets: {
       build: {
-        executor: '@nx-azure/functions:build',
+        executor: '@nx-azure/func:build',
       },
     },
     tags: normalizedOptions.parsedTags,

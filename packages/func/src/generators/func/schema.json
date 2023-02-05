@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/schema",
   "cli": "nx",
-  "$id": "Functions",
+  "$id": "Func",
   "title": "",
   "type": "object",
   "properties": {

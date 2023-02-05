@@ -1,35 +1,35 @@
 {
-  "name": "functions",
+  "name": "func",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/functions/src",
+  "sourceRoot": "packages/func/src",
   "projectType": "library",
   "targets": {
     "build": {
       "executor": "@nrwl/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/packages/functions",
-        "main": "packages/functions/src/index.ts",
-        "tsConfig": "packages/functions/tsconfig.lib.json",
+        "outputPath": "dist/packages/func",
+        "main": "packages/func/src/index.ts",
+        "tsConfig": "packages/func/tsconfig.lib.json",
         "assets": [
-          "packages/functions/*.md",
+          "packages/func/*.md",
           {
-            "input": "./packages/functions/src",
+            "input": "./packages/func/src",
             "glob": "**/!(*.ts)",
             "output": "./src"
           },
           {
-            "input": "./packages/functions/src",
+            "input": "./packages/func/src",
             "glob": "**/*.d.ts",
             "output": "./src"
           },
           {
-            "input": "./packages/functions",
+            "input": "./packages/func",
             "glob": "generators.json",
             "output": "."
           },
           {
-            "input": "./packages/functions",
+            "input": "./packages/func",
             "glob": "executors.json",
             "output": "."
           }
@@ -41,10 +41,10 @@
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": [
-          "packages/functions/**/*.ts",
-          "packages/functions/generators.json",
-          "packages/functions/executors.json",
-          "packages/functions/package.json"
+          "packages/func/**/*.ts",
+          "packages/func/generators.json",
+          "packages/func/executors.json",
+          "packages/func/package.json"
         ]
       }
     },
@@ -52,7 +52,7 @@
       "executor": "@nrwl/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "packages/functions/jest.config.ts",
+        "jestConfig": "packages/func/jest.config.ts",
         "passWithNoTests": true
       }
     }
