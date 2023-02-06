@@ -1,10 +1,4 @@
-import {
-  checkFilesExist,
-  ensureNxProject,
-  readJson,
-  runNxCommandAsync,
-  uniq,
-} from '@nrwl/nx-plugin/testing';
+import { ensureNxProject, runNxCommandAsync, uniq } from '@nrwl/nx-plugin/testing';
 
 describe('func e2e', () => {
   // Setting up individual workspaces per
@@ -23,34 +17,22 @@ describe('func e2e', () => {
     runNxCommandAsync('reset');
   });
 
-  it('should create func', async () => {
+  it('should init & build func', async () => {
     const project = uniq('func');
-    await runNxCommandAsync(`generate @nx-azure/func:func ${project}`);
-    const result = await runNxCommandAsync(`build ${project}`);
-    expect(result.stdout).toContain('Executor ran');
+    console.log('Initializing project: ' + project);
+
+    const initResult = await runNxCommandAsync(`generate @nx-azure/func:init ${project} --verbose`);
+
+    console.log('Init Result:');
+    console.log(initResult);
+    console.log('\n');
+
+    const buildResult = await runNxCommandAsync(`build ${project}`);
+
+    console.log('Build Result:');
+    console.log(buildResult);
+    console.log('\n');
+
+    expect(buildResult.stdout).toContain('Executor ran');
   }, 120000);
-
-  describe('--directory', () => {
-    it('should create src in the specified directory', async () => {
-      const project = uniq('func');
-      await runNxCommandAsync(
-        `generate @nx-azure/func:func ${project} --directory subdir`
-      );
-      expect(() =>
-        checkFilesExist(`libs/subdir/${project}/src/index.ts`)
-      ).not.toThrow();
-    }, 120000);
-  });
-
-  describe('--tags', () => {
-    it('should add tags to the project', async () => {
-      const projectName = uniq('func');
-      ensureNxProject('@nx-azure/func', 'dist/packages/func');
-      await runNxCommandAsync(
-        `generate @nx-azure/func:func ${projectName} --tags e2etag,e2ePackage`
-      );
-      const project = readJson(`libs/${projectName}/project.json`);
-      expect(project.tags).toEqual(['e2etag', 'e2ePackage']);
-    }, 120000);
-  });
 });

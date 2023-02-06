@@ -10,6 +10,7 @@ import {
   updateJson,
 } from '@nrwl/devkit';
 import path from 'path';
+import { CompilerOptions } from 'typescript';
 import {
   GLOBAL_NAME,
   FUNC_PACKAGE_NAME,
@@ -129,6 +130,17 @@ const createTsConfigFiles = (tree: Tree, { appRoot }: NormalizedOptions) => {
   tree.write(path.join(appRoot, TS_CONFIG_BUILD_FILE), JSON.stringify(buildTsConfig, null, 2));
 };
 
+const updateBaseTsConfig = (tree: Tree) => {
+  const { appsDir } = getWorkspaceLayout(tree);
+
+  updateJson<{ compilerOptions: CompilerOptions }>(tree, path.join(appsDir, TS_CONFIG_BASE_FILE), json => {
+    json.compilerOptions = json.compilerOptions || {};
+    json.compilerOptions.resolveJsonModule = true;
+
+    return json;
+  });
+};
+
 const createProjectPackageJson = (tree: Tree, { appRoot, appNames: { name } }: NormalizedOptions) => {
   // For deployment purposes, project package.json should exist on in every project
   const projectPackageJson = {
@@ -224,6 +236,7 @@ export default async function (tree: Tree, options: InitGeneratorSchema) {
   updateVsCodeRecommendations(tree);
   updateWorkspacePackageJson(tree);
   createTsConfigFiles(tree, normalizedOptions);
+  updateBaseTsConfig(tree);
   createProjectPackageJson(tree, normalizedOptions);
   createHostJson(tree, normalizedOptions);
   createLocalSettingsJson(tree, normalizedOptions);
