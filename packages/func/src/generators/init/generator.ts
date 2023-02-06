@@ -131,9 +131,7 @@ const createTsConfigFiles = (tree: Tree, { appRoot }: NormalizedOptions) => {
 };
 
 const updateBaseTsConfig = (tree: Tree) => {
-  const { appsDir } = getWorkspaceLayout(tree);
-
-  updateJson<{ compilerOptions: CompilerOptions }>(tree, path.join(appsDir, TS_CONFIG_BASE_FILE), json => {
+  updateJson<{ compilerOptions: CompilerOptions }>(tree, TS_CONFIG_BASE_FILE, json => {
     json.compilerOptions = json.compilerOptions || {};
     json.compilerOptions.resolveJsonModule = true;
 
