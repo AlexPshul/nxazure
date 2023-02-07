@@ -18,9 +18,9 @@ jobs:
       - name: Install dependencies 🛠️
         run: npm ci
       - name: Build project 👷‍♂️🏗️
-        run: nx run-many --target=build --all
+        run: npm run build:all
       - name: E2E Testing 🧪
-        run: nx run-many --target=e2e --all
+        run: npm run e2e:all
       - name: Publish package on NPM 📦
         run: npm publish
         env:

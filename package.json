@@ -5,7 +5,9 @@
   "scripts": {
     "start": "nx serve",
     "build": "nx build",
+    "build:all": "nx run-many --target=build --all",
     "test": "nx test",
+    "e2e:all": "nx run-many --target=e2e --all",
     "prepare": "is-ci || husky install",
     "lint-staged": "lint-staged"
   },
