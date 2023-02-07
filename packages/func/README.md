@@ -1,12 +1,7 @@
 
 <h1 align="center">Azure Functions NX Plugin</h1>
 <p align="center">
-  <a href="https://nx.dev">
-    <img src="https://cdn-images-1.medium.com/max/1200/1*WKgsSIGP_n6acei-mDWsOA.png" style="height:150px;" />
-  </a>
-  <a href="https://azure.microsoft.com/en-us/products/functions/">
-    <img src="https://pbs.twimg.com/profile_images/1196482103841452032/p_RFRssy_400x400.png" style="height:150px;" />
-  </a>
+  <img src="./TitleLogo.png" />
 </p>
 <h3 align="center">
   Develop a full serverless Azure Functions solution in NX monorepo
