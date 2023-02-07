@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "src/index.js",
   "access": "public",
-  "repository": "git://https://github.com/AlexPshul/nx-azure.git",
+  "repository": "https://github.com/AlexPshul/nx-azure",
   "generators": "./generators.json",
   "executors": "./executors.json"
 }
