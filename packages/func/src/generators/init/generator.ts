@@ -3,6 +3,7 @@ import {
   formatFiles,
   getProjects,
   getWorkspaceLayout,
+  installPackagesTask,
   names,
   offsetFromRoot,
   readProjectConfiguration,
@@ -215,7 +216,7 @@ const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
     import { register } from 'tsconfig-paths';
     import * as tsConfig from '../../${TS_CONFIG_BASE_FILE}';
 
-    const newPaths: Record<string, string[]> = Object.entries(tsConfig.compilerOptions.paths).reduce((newPathsObj, [pathKey, oldPaths]) => {
+    const newPaths: Record<string, string[]> = Object.entries(tsConfig.compilerOptions.paths).reduce((newPathsObj, [pathKey, oldPaths]: [string, string[]]) => {
       newPathsObj[pathKey] = oldPaths.map(path => path.replace(/.ts$/, '.js'));
       return newPathsObj;
     }, {} as Record<string, string[]>);
@@ -242,4 +243,5 @@ export default async function (tree: Tree, options: InitGeneratorSchema) {
   createRegisterPathsFile(tree, normalizedOptions);
 
   await formatFiles(tree);
+  installPackagesTask(tree, true);
 }

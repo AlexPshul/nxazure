@@ -5,6 +5,26 @@ import path from 'path';
 import { CompilerOptions, SourceFile, TransformerFactory, visitEachChild, Visitor, isImportDeclaration } from 'typescript';
 import { TS_CONFIG_BASE_FILE, TS_CONFIG_BUILD_FILE } from '../../common';
 
+const createCombinations = (moduleName: string) => {
+  const parts = moduleName.split('/');
+  const combinations: string[] = [];
+
+  parts.reduce((combined, curr) => {
+    const newStr = combined === '' ? curr : `${combined}/${curr}`;
+    combinations.push(newStr);
+    return newStr;
+  }, '');
+
+  return combinations;
+};
+
+const findModule = (dependencies: Record<string, string>, moduleName: string) => {
+  if (dependencies[moduleName]) return moduleName;
+
+  const moduleCombinations = createCombinations(moduleName);
+  return moduleCombinations.find(module => dependencies[module]);
+};
+
 const getCopyPackageToAppTransformerFactory = (context: ExecutorContext) => {
   const appRoot = context.workspace?.projects[context.projectName].root;
   const appPackageJson = readJsonFile<{ dependencies: Record<string, string> }>(path.join(appRoot, 'package.json'));
@@ -14,12 +34,10 @@ const getCopyPackageToAppTransformerFactory = (context: ExecutorContext) => {
     const visitChild: Visitor = node => {
       if (isImportDeclaration(node)) {
         const cleanedModuleName = node.moduleSpecifier.getText().replace(/['"]/g, '');
+        const moduleInOriginalPackageJson = findModule(originalPackageJson.dependencies, cleanedModuleName);
         // If the original package.json has the dependency, copy it to the app package.json
-        if (
-          originalPackageJson.dependencies[cleanedModuleName] &&
-          appPackageJson.dependencies[cleanedModuleName] !== originalPackageJson.dependencies[cleanedModuleName]
-        ) {
-          appPackageJson.dependencies[cleanedModuleName] = originalPackageJson.dependencies[cleanedModuleName];
+        if (moduleInOriginalPackageJson && appPackageJson.dependencies[cleanedModuleName] !== moduleInOriginalPackageJson) {
+          appPackageJson.dependencies[cleanedModuleName] = moduleInOriginalPackageJson;
           console.log('\x1B[90m', `Package [${cleanedModuleName}] copied to app package.json`, '\x1B[0m');
         }
       }
