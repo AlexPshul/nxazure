@@ -16,7 +16,7 @@ jobs:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies 🛠️
-        run: npm ci && npm run build
+        run: npm ci
       - name: Build project 👷‍♂️🏗️
         run: nx run-many --target=build --all
       - name: E2E Testing 🧪
