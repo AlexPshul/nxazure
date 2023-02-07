@@ -1,7 +1,11 @@
 # Home to Azure related NX plugins
 <div align="center">
-  <img src="https://cdn-images-1.medium.com/max/1200/1*WKgsSIGP_n6acei-mDWsOA.png" style="height:300px;" />
-  <img src="https://www.svgrepo.com/download/303372/azure-1-logo.svg" style="height:300px;" />
+  <a href="https://nx.dev">
+    <img src="https://cdn-images-1.medium.com/max/1200/1*WKgsSIGP_n6acei-mDWsOA.png" style="height:150px;" />
+  </a>
+  <a href="https://azure.microsoft.com">
+    <img src="https://www.svgrepo.com/download/303372/azure-1-logo.svg" style="height:150px;" />
+  </a>
 </div>
 
 This is the first home for any Azure related NX plugins.  
