@@ -1,5 +1,5 @@
 # Home to Azure related NX plugins
-<div align="center" style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+<div align="center">
   <img src="https://cdn-images-1.medium.com/max/1200/1*WKgsSIGP_n6acei-mDWsOA.png" style="height:300px;" />
   <img src="https://www.svgrepo.com/download/303372/azure-1-logo.svg" style="height:300px;" />
 </div>
@@ -13,3 +13,6 @@ For more information:
 ## Plugins list
 Navigate to the relevant plugin below for more detailed instructions:
  - [Azure Functions](/packages/func)
+
+## License
+This repo is provided under the [MIT License](/LICENSE)
