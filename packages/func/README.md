@@ -40,7 +40,7 @@ nx g @nxazure/func:new my-new-func --project=my-new-app --template="HTTP trigger
 6. Run the function app
 
 ```bash
-nx start my-new-func
+nx start my-new-app
 ```
 
 <br/>
@@ -58,6 +58,7 @@ nx start my-new-func
 2. Support for a single `node_modules` folder in the root dir (just like in other monorepo solutions)
 3. All current templates that are supported by the `func` CLI tool are supported.
 4. Run multiple functions at once `nx run-many --target=start --all`
+5. Publish the function app straight to your Azure account (az login is required)
 
 <br/>
 
