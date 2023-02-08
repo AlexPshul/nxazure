@@ -1,6 +1,6 @@
 <h1 align="center">Azure Functions NX Plugin</h1>
 <p align="center">
-  <img src="https://raw.githubusercontent.com/AlexPshul/nx-azure/master/packages/func/TitleLogo.png" />
+  <img src="https://raw.githubusercontent.com/AlexPshul/nxazure/master/packages/func/TitleLogo.png" />
 </p>
 <h3 align="center">
   Develop a full serverless Azure Functions solution in NX monorepo
@@ -19,22 +19,22 @@ This plugin allows you to initialize, create, build, run and publish Azure Funct
 npx create-nx-workspace@latest my-org
 ```
 
-3. Add the @nx-azure/func package
+3. Add the @nxazure/func package
 
 ```bash
-npm install -D @nx-azure/func
+npm install -D @nxazure/func
 ```
 
 4. Initialize a function app
 
 ```bash
-nx g @nx-azure/func:init my-new-app
+nx g @nxazure/func:init my-new-app
 ```
 
 5. Add a function to the app
 
 ```bash
-nx g @nx-azure/func:new my-new-func --project=my-new-app --template="HTTP trigger"
+nx g @nxazure/func:new my-new-func --project=my-new-app --template="HTTP trigger"
 ```
 
 6. Run the function app

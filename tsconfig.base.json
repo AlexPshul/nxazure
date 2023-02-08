@@ -17,7 +17,7 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
-      "@nx-azure/func": ["packages/func/src/index.ts"]
+      "@nxazure/func": ["packages/func/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

@@ -8,7 +8,7 @@ describe('Project initialization and build', () => {
   // on a unique project in the workspace, such that they
   // are not dependant on one another.
   beforeAll(() => {
-    ensureNxProject('@nx-azure/func', 'dist/packages/func');
+    ensureNxProject('@nxazure/func', 'dist/packages/func');
   });
 
   afterAll(() => {
@@ -19,7 +19,7 @@ describe('Project initialization and build', () => {
 
   it('should init & build and empty workspace with a functions app', async () => {
     const project = uniq('func');
-    await runNxCommandAsync(`generate @nx-azure/func:init ${project}`);
+    await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
     const buildResult = await runNxCommandAsync(`build ${project}`);
 
     expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
@@ -29,8 +29,8 @@ describe('Project initialization and build', () => {
     const project = uniq('func');
     const func = 'hello';
 
-    await runNxCommandAsync(`generate @nx-azure/func:init ${project} --verbose`);
-    await runNxCommandAsync(`generate @nx-azure/func:new ${func} --project=${project} --template="HTTP trigger"`);
+    await runNxCommandAsync(`generate @nxazure/func:init ${project} --verbose`);
+    await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
     const buildResult = await runNxCommandAsync(`build ${project}`);
 
     expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
@@ -41,8 +41,8 @@ describe('Project initialization and build', () => {
     const lib = uniq('lib');
     const func = 'hello';
 
-    await runNxCommandAsync(`generate @nx-azure/func:init ${project} --verbose`);
-    await runNxCommandAsync(`generate @nx-azure/func:new ${func} --project=${project} --template="HTTP trigger"`);
+    await runNxCommandAsync(`generate @nxazure/func:init ${project} --verbose`);
+    await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
     await runNxCommandAsync(`generate @nrwl/js:library ${lib}`);
 
     const funcFilePath = `apps/${project}/${func}/index.ts`;
