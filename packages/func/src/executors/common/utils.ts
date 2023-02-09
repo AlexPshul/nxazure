@@ -37,7 +37,7 @@ const getCopyPackageToAppTransformerFactory = (context: ExecutorContext) => {
         const moduleInOriginalPackageJson = findModule(originalPackageJson.dependencies, cleanedModuleName);
         // If the original package.json has the dependency, copy it to the app package.json
         if (moduleInOriginalPackageJson && appPackageJson.dependencies[cleanedModuleName] !== moduleInOriginalPackageJson) {
-          appPackageJson.dependencies[cleanedModuleName] = moduleInOriginalPackageJson;
+          appPackageJson.dependencies[cleanedModuleName] = originalPackageJson[moduleInOriginalPackageJson];
           console.log('\x1B[90m', `Package [${cleanedModuleName}] copied to app package.json`, '\x1B[0m');
         }
       }
