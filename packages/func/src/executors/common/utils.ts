@@ -36,9 +36,12 @@ const getCopyPackageToAppTransformerFactory = (context: ExecutorContext) => {
         const cleanedModuleName = node.moduleSpecifier.getText().replace(/['"]/g, '');
         const moduleInOriginalPackageJson = findModule(originalPackageJson.dependencies, cleanedModuleName);
         // If the original package.json has the dependency, copy it to the app package.json
-        if (moduleInOriginalPackageJson && appPackageJson.dependencies[cleanedModuleName] !== moduleInOriginalPackageJson) {
-          appPackageJson.dependencies[cleanedModuleName] = originalPackageJson[moduleInOriginalPackageJson];
-          console.log('\x1B[90m', `Package [${cleanedModuleName}] copied to app package.json`, '\x1B[0m');
+        if (
+          moduleInOriginalPackageJson &&
+          appPackageJson.dependencies[moduleInOriginalPackageJson] !== originalPackageJson.dependencies[moduleInOriginalPackageJson]
+        ) {
+          appPackageJson.dependencies[moduleInOriginalPackageJson] = originalPackageJson.dependencies[moduleInOriginalPackageJson];
+          console.log('\x1B[90m', `Package [${moduleInOriginalPackageJson}] copied to app package.json`, '\x1B[0m');
         }
       }
       return node;
