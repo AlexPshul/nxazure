@@ -46,6 +46,7 @@ const normalizeOptions = (tree: Tree, options: InitGeneratorSchema): NormalizedO
 
 const createProjectConfigurationFile = (tree: Tree, { appRoot, appNames: { name } }: NormalizedOptions) => {
   const maxPort = Array.from(getProjects(tree).values())
+    .filter(project => !!project.name)
     .map(project => readProjectConfiguration(tree, project.name))
     .filter(projectConfig => projectConfig.targets?.start?.executor === `${GLOBAL_NAME}/${FUNC_PACKAGE_NAME}:start`)
     .reduce((max, projectConfig) => Math.max(max, projectConfig.targets?.start?.options?.port || 0), 7070);
