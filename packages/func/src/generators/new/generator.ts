@@ -49,7 +49,10 @@ const createFunctionJson = (tree: Tree, { funcRoot, template, authLevel }: Norma
       compilerOptions: { outDir },
     } = readJson<{ compilerOptions: CompilerOptions }>(tree, path.join(funcRoot, '..', TS_CONFIG_BUILD_FILE));
 
-    functionJsonObject.scriptFile = path.join('..', outDir, funcRoot, 'index.js');
+    const indexJsRelativePath = path.posix.join('..', outDir, funcRoot, 'index.js');
+    const posixIndexJsRelativePath = path.posix.join(...indexJsRelativePath.split(path.sep));
+
+    functionJsonObject.scriptFile = posixIndexJsRelativePath;
   }
 
   // Change auth level in httpTrigger bindings
