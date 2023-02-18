@@ -27,20 +27,22 @@ const AZURE_FUNC_VSCODE_EXTENSION = 'ms-azuretools.vscode-azurefunctions';
 type NormalizedOptions = {
   appRoot: string;
   appNames: ReturnType<typeof names>;
+  strict: boolean;
 };
 
-const normalizeOptions = (tree: Tree, options: InitGeneratorSchema): NormalizedOptions => {
-  const appNames = names(options.name);
+const normalizeOptions = (tree: Tree, { name, strict }: InitGeneratorSchema): NormalizedOptions => {
+  const appNames = names(name);
 
   const { appsDir } = getWorkspaceLayout(tree);
   const appRoot = path.join(appsDir, appNames.fileName);
 
   if (tree.exists(appRoot) && tree.children(appRoot).length > 0)
-    throw new Error(`Project [${options.name} (${appNames.fileName})] already exists in the workspace.`);
+    throw new Error(`Project [${name} (${appNames.fileName})] already exists in the workspace.`);
 
   return {
     appRoot,
     appNames,
+    strict,
   };
 };
 
@@ -115,14 +117,14 @@ const updateWorkspacePackageJson = (tree: Tree) => {
   );
 };
 
-const createTsConfigFiles = (tree: Tree, { appRoot }: NormalizedOptions) => {
+const createTsConfigFiles = (tree: Tree, { appRoot, strict }: NormalizedOptions) => {
   const relativePathToRoot = offsetFromRoot(appRoot);
 
   const compilerOptions = {
     module: 'commonjs',
     target: 'es6',
     sourceMap: true,
-    strict: false,
+    strict,
   };
 
   const workspaceTsConfig = { extends: `${relativePathToRoot}${TS_CONFIG_BASE_FILE}`, compilerOptions };

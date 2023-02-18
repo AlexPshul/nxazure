@@ -1,4 +1,5 @@
-import { ensureNxProject, runNxCommandAsync, uniq, updateFile } from '@nrwl/nx-plugin/testing';
+import { ensureNxProject, runNxCommandAsync, uniq, updateFile, readJson } from '@nrwl/nx-plugin/testing';
+import { CompilerOptions } from 'typescript';
 
 describe('Project initialization and build', () => {
   // Setting up individual workspaces per
@@ -69,5 +70,27 @@ describe('Project initialization and build', () => {
     const buildResult = await runNxCommandAsync(`build ${project}`);
 
     expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
+  }, 120000);
+
+  it('Use strict mode', async () => {
+    const project = uniq('func');
+    await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
+
+    const tsConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.json`);
+    const tsBuildConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.build.json`);
+
+    expect(tsConfig.compilerOptions.strict).toBe(true);
+    expect(tsBuildConfig.compilerOptions.strict).toBe(true);
+  }, 120000);
+
+  it('Use no strict mode', async () => {
+    const project = uniq('func');
+    await runNxCommandAsync(`generate @nxazure/func:init ${project} --no-strict`);
+
+    const tsConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.json`);
+    const tsBuildConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.build.json`);
+
+    expect(tsConfig.compilerOptions.strict).toBe(false);
+    expect(tsBuildConfig.compilerOptions.strict).toBe(false);
   }, 120000);
 });
