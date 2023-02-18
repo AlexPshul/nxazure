@@ -17,8 +17,7 @@
     "strict": {
       "type": "boolean",
       "description": "Create a strict TypeScript project",
-      "default": true,
-      "x-prompt": "Would you like to create a strict TypeScript project?"
+      "default": true
     }
   },
   "required": ["name"]

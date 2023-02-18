@@ -30,7 +30,7 @@ describe('Project initialization and build', () => {
     const project = uniq('func');
     const func = 'hello';
 
-    await runNxCommandAsync(`generate @nxazure/func:init ${project} --verbose`);
+    await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
     await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
     const buildResult = await runNxCommandAsync(`build ${project}`);
 
@@ -42,7 +42,7 @@ describe('Project initialization and build', () => {
     const lib = uniq('lib');
     const func = 'hello';
 
-    await runNxCommandAsync(`generate @nxazure/func:init ${project} --verbose`);
+    await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
     await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
     await runNxCommandAsync(`generate @nrwl/js:library ${lib}`);
 
