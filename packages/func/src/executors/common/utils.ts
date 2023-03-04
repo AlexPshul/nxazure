@@ -68,10 +68,13 @@ export const build = (context: ExecutorContext) => {
   const baseConfig = readJsonFile<{ compilerOptions: CompilerOptions }>(baseConfigPath);
   config.compilerOptions.baseUrl = baseConfig.compilerOptions.baseUrl;
 
-  config.compilerOptions.paths = Object.keys(baseConfig.compilerOptions.paths).reduce((acc, key) => {
-    acc[key] = baseConfig.compilerOptions.paths[key].map(path => `../../${path}`);
-    return acc;
-  }, {} as Record<string, string[]>);
+  config.compilerOptions.paths = !baseConfig.compilerOptions.paths
+    ? {}
+    : Object.keys(baseConfig.compilerOptions.paths).reduce((acc, key) => {
+        acc[key] = baseConfig.compilerOptions.paths[key].map(path => `../../${path}`);
+        return acc;
+      }, {} as Record<string, string[]>);
+
   writeJsonFile(configPath, config);
   execSync(`npx prettier ${configPath} -w`);
 
