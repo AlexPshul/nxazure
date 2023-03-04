@@ -71,8 +71,13 @@ const createTemplateFiles = (tree: Tree, { funcRoot, template }: NormalizedOptio
 };
 
 export default async function (tree: Tree, options: NewGeneratorSchema) {
-  const normalizedOptions = normalizeOptions(tree, options);
+  try {
+    const normalizedOptions = normalizeOptions(tree, options);
 
-  createFunctionJson(tree, normalizedOptions);
-  createTemplateFiles(tree, normalizedOptions);
+    createFunctionJson(tree, normalizedOptions);
+    createTemplateFiles(tree, normalizedOptions);
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
 }

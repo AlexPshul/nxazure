@@ -135,6 +135,8 @@ const createTsConfigFiles = (tree: Tree, { appRoot, strict }: NormalizedOptions)
 };
 
 const updateBaseTsConfig = (tree: Tree) => {
+  if (!tree.exists(TS_CONFIG_BASE_FILE)) tree.write(TS_CONFIG_BASE_FILE, '{}');
+
   updateJson<{ compilerOptions: CompilerOptions }>(tree, TS_CONFIG_BASE_FILE, json => {
     json.compilerOptions = json.compilerOptions || {};
     json.compilerOptions.resolveJsonModule = true;
@@ -239,19 +241,24 @@ const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
   );
 
 export default async function (tree: Tree, options: InitGeneratorSchema) {
-  const normalizedOptions = normalizeOptions(tree, options);
+  try {
+    const normalizedOptions = normalizeOptions(tree, options);
 
-  createProjectConfigurationFile(tree, normalizedOptions);
-  updateVsCodeRecommendations(tree);
-  updateWorkspacePackageJson(tree);
-  createTsConfigFiles(tree, normalizedOptions);
-  updateBaseTsConfig(tree);
-  createProjectPackageJson(tree, normalizedOptions);
-  createHostJson(tree, normalizedOptions);
-  createLocalSettingsJson(tree, normalizedOptions);
-  createFuncIgnoreFile(tree, normalizedOptions);
-  createRegisterPathsFile(tree, normalizedOptions);
+    createProjectConfigurationFile(tree, normalizedOptions);
+    updateVsCodeRecommendations(tree);
+    updateWorkspacePackageJson(tree);
+    createTsConfigFiles(tree, normalizedOptions);
+    updateBaseTsConfig(tree);
+    createProjectPackageJson(tree, normalizedOptions);
+    createHostJson(tree, normalizedOptions);
+    createLocalSettingsJson(tree, normalizedOptions);
+    createFuncIgnoreFile(tree, normalizedOptions);
+    createRegisterPathsFile(tree, normalizedOptions);
 
-  await formatFiles(tree);
-  installPackagesTask(tree, true);
+    await formatFiles(tree);
+    installPackagesTask(tree, true);
+  } catch (e) {
+    console.error(e); // Helps with debugging tests
+    throw e;
+  }
 }
