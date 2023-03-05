@@ -75,6 +75,8 @@ const createProjectConfigurationFile = (tree: Tree, { appRoot, appNames: { name 
 };
 
 const updateVsCodeRecommendations = (tree: Tree) => {
+  if (!tree.exists('.vscode/extensions.json')) tree.write('.vscode/extensions.json', '{}');
+
   updateJson(tree, '.vscode/extensions.json', json => {
     json.recommendations = json.recommendations || [];
     if (!json.recommendations.includes(AZURE_FUNC_VSCODE_EXTENSION)) {
