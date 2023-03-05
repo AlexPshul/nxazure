@@ -35,7 +35,7 @@
       "type": "string",
       "enum": [
         "Azure Blob Storage trigger",
-        "Cosmos DB trigger",
+        "Azure Cosmos DB trigger",
         "Durable Functions activity",
         "Durable Functions entity",
         "Durable Functions Entity HTTP starter",

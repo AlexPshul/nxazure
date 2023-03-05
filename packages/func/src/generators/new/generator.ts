@@ -5,7 +5,25 @@ import { IMPORT_REGISTRATION, TS_CONFIG_BUILD_FILE } from '../../common';
 import { NewGeneratorSchema } from './schema';
 import templates from './templates.json';
 
-type Template = (typeof templates)[number];
+type Binding = {
+  name: string;
+  type: string;
+  direction: string;
+} & Record<string, unknown>;
+
+type Template = {
+  id: string;
+  runtime: string;
+  files: Record<string, string>;
+  function: {
+    disabled?: boolean;
+    bindings: Binding[];
+  };
+  metadata: {
+    name: string;
+    language: string;
+  };
+};
 
 type NormalizedOptions = Pick<NewGeneratorSchema, 'language' | 'authLevel'> & {
   funcRoot: string;
@@ -52,7 +70,10 @@ const createFunctionJson = (tree: Tree, { funcRoot, template, authLevel }: Norma
     const indexJsRelativePath = path.posix.join('..', outDir, funcRoot, 'index.js');
     const posixIndexJsRelativePath = path.posix.join(...indexJsRelativePath.split(path.sep));
 
-    functionJsonObject.scriptFile = posixIndexJsRelativePath;
+    if (template.metadata.language === 'TypeScript') {
+      // For TypeScript functions, a scriptFile should be added to the function.json
+      functionJsonObject['scriptFile'] = posixIndexJsRelativePath;
+    }
   }
 
   // Change auth level in httpTrigger bindings
