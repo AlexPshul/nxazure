@@ -114,8 +114,11 @@ describe('Check strict option', () => {
     const workspaceTsConfig = appTree.read('apps/hello-world/tsconfig.json');
     const buildTsConfig = appTree.read('apps/hello-world/tsconfig.build.json');
 
-    expect(workspaceTsConfig).toHaveProperty('compilerOptions.strict', true);
-    expect(buildTsConfig).toHaveProperty('compilerOptions.strict', true);
+    const workspaceTsConfigObj = JSON.parse(workspaceTsConfig?.toString() || '{}');
+    const buildTsConfigObj = JSON.parse(buildTsConfig?.toString() || '{}');
+
+    expect(workspaceTsConfigObj).toHaveProperty('compilerOptions.strict', true);
+    expect(buildTsConfigObj).toHaveProperty('compilerOptions.strict', true);
   });
 
   it('Strict option is false', async () => {
@@ -123,8 +126,11 @@ describe('Check strict option', () => {
     const workspaceTsConfig = appTree.read('apps/hello-world/tsconfig.json');
     const buildTsConfig = appTree.read('apps/hello-world/tsconfig.build.json');
 
-    expect(workspaceTsConfig).toHaveProperty('compilerOptions.strict', false);
-    expect(buildTsConfig).toHaveProperty('compilerOptions.strict', false);
+    const workspaceTsConfigObj = JSON.parse(workspaceTsConfig?.toString() || '{}');
+    const buildTsConfigObj = JSON.parse(buildTsConfig?.toString() || '{}');
+
+    expect(workspaceTsConfigObj).toHaveProperty('compilerOptions.strict', false);
+    expect(buildTsConfigObj).toHaveProperty('compilerOptions.strict', false);
   });
 });
 
