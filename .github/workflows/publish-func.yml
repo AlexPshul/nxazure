@@ -19,6 +19,8 @@ jobs:
         run: npm ci
       - name: Build project 👷‍♂️🏗️
         run: npm run build:all
+      - name: Unit Testing 🧪
+        run: npm run test:all
       - name: E2E Testing 🧪
         run: npm run e2e:all
       - name: Publish package on NPM 📦

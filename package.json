@@ -7,6 +7,7 @@
     "build": "nx build",
     "build:all": "nx run-many --target=build --all",
     "test": "nx test",
+    "test:all": "nx run-many --target=test --all",
     "e2e:all": "nx run-many --target=e2e --all",
     "prepare": "is-ci || husky install",
     "lint-staged": "lint-staged"
@@ -47,4 +48,3 @@
     "tslib": "^2.3.0"
   }
 }
-
