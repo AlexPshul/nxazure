@@ -46,11 +46,12 @@ describe('new generator', () => {
     language: 'TypeScript',
     template: 'HTTP trigger',
     authLevel: 'anonymous',
+    silent: true,
   };
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
-    await initProjecteGenerator(appTree, { name: projectName, strict: true });
+    await initProjecteGenerator(appTree, { name: projectName, strict: true, silent: true });
   });
 
   it.each(templates)('%s template function', async (template, name, directory) => {

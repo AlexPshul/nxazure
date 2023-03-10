@@ -275,7 +275,14 @@ const createEslintConfig = (tree: Tree, { appRoot }: NormalizedOptions) => {
 };
 
 export default async function (tree: Tree, options: InitGeneratorSchema) {
+  const originalConsoleLog = console.log;
+
   try {
+    if (options.silent)
+      console.log = () => {
+        // Empty on purpose to silent all output
+      };
+
     const normalizedOptions = normalizeOptions(tree, options);
 
     createProjectConfigurationFile(tree, normalizedOptions);
@@ -295,5 +302,7 @@ export default async function (tree: Tree, options: InitGeneratorSchema) {
   } catch (e) {
     console.error(e); // Helps with debugging tests
     throw e;
+  } finally {
+    console.log = originalConsoleLog;
   }
 }

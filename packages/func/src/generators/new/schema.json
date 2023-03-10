@@ -63,6 +63,11 @@
       "type": "string",
       "enum": ["anonymous", "function", "admin"],
       "description": "The authorization level for the new function. (Ignored for non-HTTP triggers)"
+    },
+    "silent": {
+      "type": "boolean",
+      "description": "Do not print any output to the console.",
+      "default": false
     }
   },
   "required": ["project", "name", "template"]

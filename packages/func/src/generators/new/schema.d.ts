@@ -4,4 +4,5 @@ export interface NewGeneratorSchema {
   language: 'TypeScript';
   template: string;
   authLevel?: 'anonymous' | 'function' | 'admin';
+  silent: boolean;
 }

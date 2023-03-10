@@ -16,7 +16,7 @@ jest.mock('@nrwl/devkit', () => {
 describe('Check files', () => {
   const projectName = 'HelloWorld';
   let appTree: Tree;
-  const options: InitGeneratorSchema = { name: projectName, strict: true };
+  const options: InitGeneratorSchema = { name: projectName, strict: true, silent: true };
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
@@ -98,7 +98,6 @@ describe('Check files', () => {
     expect(eslintConfig).toBeDefined();
 
     const eslintConfigObj = JSON.parse(eslintConfig?.toString() || '{}');
-    console.log('Here is the object: ', eslintConfigObj);
     expect(eslintConfigObj).toHaveProperty('extends', '../../.eslintrc.json');
     expect(eslintConfigObj.overrides[0]).toHaveProperty('parserOptions.project', ['apps/hello-world/tsconfig.*?.json']);
   });
@@ -114,7 +113,7 @@ describe('Check files', () => {
 
 describe('Check strict option', () => {
   let appTree: Tree;
-  const partialOptions: Omit<InitGeneratorSchema, 'strict'> = { name: 'HelloWorld' };
+  const partialOptions: Omit<InitGeneratorSchema, 'strict'> = { name: 'HelloWorld', silent: true };
 
   beforeEach(() => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
@@ -147,7 +146,7 @@ describe('Check strict option', () => {
 
 describe('Check port increased value', () => {
   let appTree: Tree;
-  const baseOptions: InitGeneratorSchema = { name: 'HelloWorld', strict: true };
+  const baseOptions: InitGeneratorSchema = { name: 'HelloWorld', strict: true, silent: true };
 
   beforeAll(() => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
@@ -184,7 +183,7 @@ describe('Check port increased value', () => {
 describe('Init with no eslint', () => {
   const projectName = 'HelloWorld';
   let appTree: Tree;
-  const baseOptions: InitGeneratorSchema = { name: projectName, strict: true };
+  const baseOptions: InitGeneratorSchema = { name: projectName, strict: true, silent: true };
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
@@ -200,10 +199,7 @@ describe('Init with no eslint', () => {
   it('Global config exists -> app config generated', async () => {
     appTree.write('.eslintrc.json', JSON.stringify({}));
     await generator(appTree, { ...baseOptions, name: baseOptions.name + '2' });
-    console.log(
-      'Tree changes: ',
-      appTree.listChanges().map(c => c.path),
-    );
+
     const eslintConfigExists = appTree.exists('apps/hello-world2/.eslintrc.json');
     expect(eslintConfigExists).toBeTruthy();
   });

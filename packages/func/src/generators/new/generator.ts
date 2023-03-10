@@ -92,7 +92,14 @@ const createTemplateFiles = (tree: Tree, { funcRoot, template }: NormalizedOptio
 };
 
 export default async function (tree: Tree, options: NewGeneratorSchema) {
+  const originalConsoleLog = console.log;
+
   try {
+    if (options.silent)
+      console.log = () => {
+        // Empty on purpose to silent all output
+      };
+
     const normalizedOptions = normalizeOptions(tree, options);
 
     createFunctionJson(tree, normalizedOptions);
@@ -100,5 +107,7 @@ export default async function (tree: Tree, options: NewGeneratorSchema) {
   } catch (e) {
     console.error(e);
     throw e;
+  } finally {
+    console.log = originalConsoleLog;
   }
 }

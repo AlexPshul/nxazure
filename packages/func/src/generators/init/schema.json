@@ -18,6 +18,11 @@
       "type": "boolean",
       "description": "Create a strict TypeScript project",
       "default": true
+    },
+    "silent": {
+      "type": "boolean",
+      "description": "Do not print any output",
+      "default": false
     }
   },
   "required": ["name"]
