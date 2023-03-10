@@ -20,6 +20,7 @@ describe('Check files', () => {
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
+    appTree.write('.eslintrc.json', JSON.stringify({}));
     await generator(appTree, options);
   });
 
@@ -90,6 +91,16 @@ describe('Check files', () => {
 
     const tsconfigObj = JSON.parse(tsconfig?.toString() || '{}');
     expect(tsconfigObj).toHaveProperty('compilerOptions.resolveJsonModule', true);
+  });
+
+  it('Project eslint config file', () => {
+    const eslintConfig = appTree.read('apps/hello-world/.eslintrc.json');
+    expect(eslintConfig).toBeDefined();
+
+    const eslintConfigObj = JSON.parse(eslintConfig?.toString() || '{}');
+    console.log('Here is the object: ', eslintConfigObj);
+    expect(eslintConfigObj).toHaveProperty('extends', '../../.eslintrc.json');
+    expect(eslintConfigObj.overrides[0]).toHaveProperty('parserOptions.project', ['apps/hello-world/tsconfig.*?.json']);
   });
 
   it('Auto generated files', () => {
@@ -167,5 +178,33 @@ describe('Check port increased value', () => {
     const config = readProjectConfiguration(appTree, projectName);
 
     expect(config).toHaveProperty('targets.start.options.port', 7073);
+  });
+});
+
+describe('Init with no eslint', () => {
+  const projectName = 'HelloWorld';
+  let appTree: Tree;
+  const baseOptions: InitGeneratorSchema = { name: projectName, strict: true };
+
+  beforeAll(async () => {
+    appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
+  });
+
+  it('No global config -> no app config', async () => {
+    await generator(appTree, { ...baseOptions, name: baseOptions.name + '1' });
+
+    const eslintConfigExists = appTree.exists('apps/hello-world1/.eslintrc.json');
+    expect(eslintConfigExists).toBeFalsy();
+  });
+
+  it('Global config exists -> app config generated', async () => {
+    appTree.write('.eslintrc.json', JSON.stringify({}));
+    await generator(appTree, { ...baseOptions, name: baseOptions.name + '2' });
+    console.log(
+      'Tree changes: ',
+      appTree.listChanges().map(c => c.path),
+    );
+    const eslintConfigExists = appTree.exists('apps/hello-world2/.eslintrc.json');
+    expect(eslintConfigExists).toBeTruthy();
   });
 });

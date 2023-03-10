@@ -242,6 +242,38 @@ const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
     `,
   );
 
+const createEslintConfig = (tree: Tree, { appRoot }: NormalizedOptions) => {
+  if (!tree.exists('.eslintrc.json')) return;
+
+  const relativePathToRoot = offsetFromRoot(appRoot);
+  const projectJsonPath = `${appRoot}/tsconfig.*?.json`;
+
+  const projectEslintConfig = {
+    extends: `${relativePathToRoot}.eslintrc.json`,
+    ignorePatterns: ['!**/*'],
+    rules: {},
+    overrides: [
+      {
+        files: ['*.ts', '*.tsx', '*.js', '*.jsx'],
+        parserOptions: {
+          project: [path.posix.join(...projectJsonPath.split(path.sep))],
+        },
+        rules: {},
+      },
+      {
+        files: ['*.ts', '*.tsx'],
+        rules: {},
+      },
+      {
+        files: ['*.js', '*.jsx'],
+        rules: {},
+      },
+    ],
+  };
+
+  tree.write(path.join(appRoot, '.eslintrc.json'), JSON.stringify(projectEslintConfig, null, 2));
+};
+
 export default async function (tree: Tree, options: InitGeneratorSchema) {
   try {
     const normalizedOptions = normalizeOptions(tree, options);
@@ -256,6 +288,7 @@ export default async function (tree: Tree, options: InitGeneratorSchema) {
     createLocalSettingsJson(tree, normalizedOptions);
     createFuncIgnoreFile(tree, normalizedOptions);
     createRegisterPathsFile(tree, normalizedOptions);
+    createEslintConfig(tree, normalizedOptions);
 
     await formatFiles(tree);
     installPackagesTask(tree, true);
