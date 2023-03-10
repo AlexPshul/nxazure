@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 import { build } from '../common/utils';
 import { PublishExecutorSchema } from './schema';
 import fs from 'fs';
+import path from 'path';
 
 const executor: Executor<PublishExecutorSchema> = async (options, context) => {
   const success = build(context);
@@ -16,7 +17,7 @@ const executor: Executor<PublishExecutorSchema> = async (options, context) => {
       stdio: 'inherit',
     });
 
-    fs.rmSync(`node_modules`, { recursive: true, force: true });
+    fs.rmSync(path.join(cwd, 'node_modules'), { recursive: true, force: true });
   }
 
   return { success };
