@@ -66,7 +66,6 @@ export const build = (context: ExecutorContext) => {
 
   const baseConfigPath = path.join(context.cwd, TS_CONFIG_BASE_FILE);
   const baseConfig = readJsonFile<{ compilerOptions: CompilerOptions }>(baseConfigPath);
-  config.compilerOptions.baseUrl = baseConfig.compilerOptions.baseUrl;
 
   config.compilerOptions.paths = !baseConfig.compilerOptions.paths
     ? {}
