@@ -1,3 +1,6 @@
 {
-  "eslint.validate": ["json"]
+  "eslint.validate": ["json"],
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  }
 }
