@@ -6,44 +6,73 @@ import {
   installPackagesTask,
   names,
   offsetFromRoot,
+  readJsonFile,
   readProjectConfiguration,
   Tree,
   updateJson,
 } from '@nrwl/devkit';
+import { execSync } from 'child_process';
+import fs, { readFileSync } from 'fs';
+import os from 'os';
 import path from 'path';
 import { CompilerOptions } from 'typescript';
 import {
-  GLOBAL_NAME,
+  color,
   FUNC_PACKAGE_NAME,
+  GLOBAL_NAME,
+  REGISTRATION_FILE,
   TS_CONFIG_BASE_FILE,
   TS_CONFIG_BUILD_FILE,
   TS_CONFIG_WORKSPACE_FILE,
-  REGISTRATION_FILE,
 } from '../../common';
 import { InitGeneratorSchema } from './schema';
-
-const AZURE_FUNC_VSCODE_EXTENSION = 'ms-azuretools.vscode-azurefunctions';
 
 type NormalizedOptions = {
   appRoot: string;
   appNames: ReturnType<typeof names>;
   strict: boolean;
+  v4: boolean;
 };
 
-const normalizeOptions = (tree: Tree, { name, strict }: InitGeneratorSchema): NormalizedOptions => {
+const staticFilesToCopy = ['host.json', 'local.settings.json', '.funcignore'];
+
+const normalizeOptions = (tree: Tree, { name, strict, v4 }: InitGeneratorSchema): NormalizedOptions => {
   const appNames = names(name);
 
   const { appsDir } = getWorkspaceLayout(tree);
-  const appRoot = path.join(appsDir, appNames.fileName);
+  const appRoot = path.posix.join(appsDir, appNames.fileName);
 
   if (tree.exists(appRoot) && tree.children(appRoot).length > 0)
     throw new Error(`Project [${name} (${appNames.fileName})] already exists in the workspace.`);
+
+  if (v4) console.log(color.warn('The V4 model is currently in preview. Use with caution.'));
 
   return {
     appRoot,
     appNames,
     strict,
+    v4,
   };
+};
+
+const createTempFolderWithInit = ({ appNames: { fileName }, v4 }: NormalizedOptions) => {
+  const tempFolder = fs.mkdtempSync(path.posix.join(os.tmpdir(), `func-${fileName}-`));
+
+  try {
+    execSync(`func init ${fileName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`, {
+      cwd: tempFolder,
+      stdio: 'inherit',
+    });
+
+    // For V4, install the latest preview version.
+    // Looks like the current latest version is not being installed correctly by the tools
+    if (v4) execSync('npm i @azure/functions@preview', { cwd: tempFolder, stdio: 'inherit' });
+
+    return { tempFolder, tempProjectRoot: path.posix.join(tempFolder, fileName) };
+  } catch (err) {
+    if (fs.existsSync(tempFolder)) fs.rmdirSync(tempFolder, { recursive: true });
+    throw err;
+  }
 };
 
 const createProjectConfigurationFile = (tree: Tree, { appRoot, appNames: { name } }: NormalizedOptions) => {
@@ -74,48 +103,47 @@ const createProjectConfigurationFile = (tree: Tree, { appRoot, appNames: { name 
   });
 };
 
-const updateVsCodeRecommendations = (tree: Tree) => {
+const updateVsCodeRecommendations = (tree: Tree, copyFromFolder: string) => {
+  const sourceExtensionJson = readJsonFile<{ recommendations: string[] }>(path.posix.join(copyFromFolder, '.vscode/extensions.json'));
+
   if (!tree.exists('.vscode/extensions.json')) tree.write('.vscode/extensions.json', '{}');
 
   updateJson(tree, '.vscode/extensions.json', json => {
     json.recommendations = json.recommendations || [];
-    if (!json.recommendations.includes(AZURE_FUNC_VSCODE_EXTENSION)) {
-      json.recommendations.push(AZURE_FUNC_VSCODE_EXTENSION);
-    }
+    sourceExtensionJson.recommendations
+      .filter(extension => !json.recommendations.includes(extension))
+      .forEach(extension => json.recommendations.push(extension));
 
     return json;
   });
 };
 
-const updateWorkspacePackageJson = (tree: Tree) => {
-  const dependenciesDefaults = {
-    'tsconfig-paths': '^4.1.2',
-  };
+const updateWorkspacePackageJson = (tree: Tree, copyFromFolder: string) => {
+  // Get the packageJson from the temp folder
+  const sourcePackageJson = readJsonFile<{ dependencies: Record<string, string>; devDependencies: Record<string, string> }>(
+    path.posix.join(copyFromFolder, 'package.json'),
+  );
 
-  const devDependenciesDefaults = {
-    ['typescript']: '^4.9.4',
-    ['@azure/functions']: '^3.0.0',
-    ['azure-functions-core-tools']: '^4.x',
-    ['@types/node']: '^18.11.18',
-  };
+  const additionalDependencies = { 'tsconfig-paths': '^4.2.0' };
+  const sourceDependencies = { ...sourcePackageJson.dependencies, ...additionalDependencies };
 
   updateJson(tree, 'package.json', json => {
-    json.dependencies = json.dependencies || dependenciesDefaults;
-    Object.keys(dependenciesDefaults).forEach(key => {
-      json.dependencies[key] = json.dependencies[key] || dependenciesDefaults[key];
+    json.dependencies = json.dependencies || {};
+    Object.keys(sourceDependencies).forEach(key => {
+      json.dependencies[key] = json.dependencies[key] || sourceDependencies[key];
     });
 
-    json.devDependencies = json.devDependencies || devDependenciesDefaults;
-    Object.keys(devDependenciesDefaults).forEach(key => {
-      json.devDependencies[key] = json.devDependencies[key] || devDependenciesDefaults[key];
+    json.devDependencies = json.devDependencies || {};
+    Object.keys(sourcePackageJson.devDependencies).forEach(key => {
+      json.devDependencies[key] = json.devDependencies[key] || sourcePackageJson.devDependencies[key];
     });
 
     return json;
   });
 
   console.log(
-    '\x1B[33mATTENTION\x1B[0m',
-    'Some dependencies might not work together well. If something is not working, try to update @types/node and/or typescript to the latest versions.',
+    color.warn('ATTENTION'),
+    'Some dependencies might not work well together. If something is not working, try to update @types/node, typescript or @azure/functions to the latest (preview for V4) versions.',
   );
 };
 
@@ -130,10 +158,10 @@ const createTsConfigFiles = (tree: Tree, { appRoot, strict }: NormalizedOptions)
   };
 
   const workspaceTsConfig = { extends: `${relativePathToRoot}${TS_CONFIG_BASE_FILE}`, compilerOptions };
-  tree.write(path.join(appRoot, TS_CONFIG_WORKSPACE_FILE), JSON.stringify(workspaceTsConfig, null, 2));
+  tree.write(path.posix.join(appRoot, TS_CONFIG_WORKSPACE_FILE), JSON.stringify(workspaceTsConfig, null, 2));
 
   const buildTsConfig = { compilerOptions: { ...compilerOptions, outDir: 'dist', resolveJsonModule: true } };
-  tree.write(path.join(appRoot, TS_CONFIG_BUILD_FILE), JSON.stringify(buildTsConfig, null, 2));
+  tree.write(path.posix.join(appRoot, TS_CONFIG_BUILD_FILE), JSON.stringify(buildTsConfig, null, 2));
 };
 
 const updateBaseTsConfig = (tree: Tree) => {
@@ -147,78 +175,28 @@ const updateBaseTsConfig = (tree: Tree) => {
   });
 };
 
-const createProjectPackageJson = (tree: Tree, { appRoot, appNames: { name } }: NormalizedOptions) => {
-  // For deployment purposes, project package.json should exist on in every project
-  const projectPackageJson = {
-    name: name,
-    version: '1.0.0',
-    description: '',
-    scripts: {
-      build: 'tsc',
-      watch: 'tsc -w',
-      prestart: 'npm run build',
-      start: 'func start',
-      test: 'echo "No tests yet..."',
-    },
-    dependencies: {},
-    devDependencies: {},
-  };
-
-  tree.write(path.join(appRoot, 'package.json'), JSON.stringify(projectPackageJson, null, 2));
-};
-
-const createHostJson = (tree: Tree, { appRoot }: NormalizedOptions) => {
-  const hostData = {
-    version: '2.0',
-    logging: {
-      applicationInsights: {
-        samplingSettings: {
-          isEnabled: true,
-          excludedTypes: 'Request',
-        },
-      },
-    },
-    extensionBundle: {
-      id: 'Microsoft.Azure.Functions.ExtensionBundle',
-      version: '[3.*, 4.0.0)',
-    },
-  };
-
-  tree.write(path.join(appRoot, 'host.json'), JSON.stringify(hostData, null, 2));
-};
-
-const createLocalSettingsJson = (tree: Tree, { appRoot }: NormalizedOptions) => {
-  const localSettingsData = {
-    IsEncrypted: false,
-    Values: {
-      AzureWebJobsStorage: 'UseDevelopmentStorage=true',
-      FUNCTIONS_WORKER_RUNTIME: 'node',
-    },
-  };
-
-  tree.write(path.join(appRoot, 'local.settings.json'), JSON.stringify(localSettingsData, null, 2));
-};
-
-const createFuncIgnoreFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
-  tree.write(
-    path.join(appRoot, '.funcignore'),
-    `
-      *.js.map
-      *.ts
-      .git*
-      .vscode
-      local.settings.json
-      test
-      getting_started.md
-      node_modules/@types/
-      node_modules/azure-functions-core-tools/
-      node_modules/typescript/
-    `,
+const createProjectPackageJson = (tree: Tree, { appRoot }: NormalizedOptions, copyFromFolder: string) => {
+  // This needs to be copied and dependencies + devDependencies removed
+  const sourcePackageJson = readJsonFile<{ dependencies: Record<string, string>; devDependencies: Record<string, string> }>(
+    path.posix.join(copyFromFolder, 'package.json'),
   );
+
+  sourcePackageJson.dependencies = {};
+  sourcePackageJson.devDependencies = {};
+
+  tree.write(path.posix.join(appRoot, 'package.json'), JSON.stringify(sourcePackageJson, null, 2));
+};
+
+const copyFilesFromTemp = (tree: Tree, { appRoot }: NormalizedOptions, tempFolder: string, fileNames: string[]) => {
+  fileNames.forEach(fileName => {
+    const data = readFileSync(path.posix.join(tempFolder, fileName));
+    tree.write(path.posix.join(appRoot, fileName), data);
+  });
+};
 
 const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
   tree.write(
-    path.join(appRoot, REGISTRATION_FILE),
+    path.posix.join(appRoot, REGISTRATION_FILE),
     `
     import { register } from 'tsconfig-paths';
     import * as tsConfig from '../../${TS_CONFIG_BASE_FILE}';
@@ -271,29 +249,24 @@ const createEslintConfig = (tree: Tree, { appRoot }: NormalizedOptions) => {
     ],
   };
 
-  tree.write(path.join(appRoot, '.eslintrc.json'), JSON.stringify(projectEslintConfig, null, 2));
+  tree.write(path.posix.join(appRoot, '.eslintrc.json'), JSON.stringify(projectEslintConfig, null, 2));
 };
 
 export default async function (tree: Tree, options: InitGeneratorSchema) {
   const originalConsoleLog = console.log;
+  if (options.silent) console.log = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
+
+  const normalizedOptions = normalizeOptions(tree, options);
+  const { tempFolder, tempProjectRoot } = createTempFolderWithInit(normalizedOptions);
 
   try {
-    if (options.silent)
-      console.log = () => {
-        // Empty on purpose to silent all output
-      };
-
-    const normalizedOptions = normalizeOptions(tree, options);
-
     createProjectConfigurationFile(tree, normalizedOptions);
-    updateVsCodeRecommendations(tree);
-    updateWorkspacePackageJson(tree);
+    updateVsCodeRecommendations(tree, tempProjectRoot);
+    updateWorkspacePackageJson(tree, tempProjectRoot);
     createTsConfigFiles(tree, normalizedOptions);
     updateBaseTsConfig(tree);
-    createProjectPackageJson(tree, normalizedOptions);
-    createHostJson(tree, normalizedOptions);
-    createLocalSettingsJson(tree, normalizedOptions);
-    createFuncIgnoreFile(tree, normalizedOptions);
+    createProjectPackageJson(tree, normalizedOptions, tempProjectRoot);
+    copyFilesFromTemp(tree, normalizedOptions, tempProjectRoot, staticFilesToCopy);
     createRegisterPathsFile(tree, normalizedOptions);
     createEslintConfig(tree, normalizedOptions);
 
@@ -304,5 +277,6 @@ export default async function (tree: Tree, options: InitGeneratorSchema) {
     throw e;
   } finally {
     console.log = originalConsoleLog;
+    fs.rmdirSync(tempFolder, { recursive: true });
   }
 }

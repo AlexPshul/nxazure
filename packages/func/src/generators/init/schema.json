@@ -23,6 +23,11 @@
       "type": "boolean",
       "description": "Do not print any output",
       "default": false
+    },
+    "v4": {
+      "type": "boolean",
+      "description": "Use the preview V4 model of Azure Functions.",
+      "default": false
     }
   },
   "required": ["name"]

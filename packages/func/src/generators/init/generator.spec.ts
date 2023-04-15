@@ -1,5 +1,5 @@
-import { createTreeWithEmptyWorkspace } from '@nrwl/devkit/testing';
 import { Tree, readProjectConfiguration } from '@nrwl/devkit';
+import { createTreeWithEmptyWorkspace } from '@nrwl/devkit/testing';
 
 import generator from './generator';
 import { InitGeneratorSchema } from './schema';
@@ -16,7 +16,7 @@ jest.mock('@nrwl/devkit', () => {
 describe('Check files', () => {
   const projectName = 'HelloWorld';
   let appTree: Tree;
-  const options: InitGeneratorSchema = { name: projectName, strict: true, silent: true };
+  const options: InitGeneratorSchema = { name: projectName, strict: true, silent: true, v4: false };
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
@@ -113,7 +113,7 @@ describe('Check files', () => {
 
 describe('Check strict option', () => {
   let appTree: Tree;
-  const partialOptions: Omit<InitGeneratorSchema, 'strict'> = { name: 'HelloWorld', silent: true };
+  const partialOptions: Omit<InitGeneratorSchema, 'strict'> = { name: 'HelloWorld', silent: true, v4: false };
 
   beforeEach(() => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
@@ -146,7 +146,7 @@ describe('Check strict option', () => {
 
 describe('Check port increased value', () => {
   let appTree: Tree;
-  const baseOptions: InitGeneratorSchema = { name: 'HelloWorld', strict: true, silent: true };
+  const baseOptions: InitGeneratorSchema = { name: 'HelloWorld', strict: true, silent: true, v4: false };
 
   beforeAll(() => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
@@ -183,7 +183,7 @@ describe('Check port increased value', () => {
 describe('Init with no eslint', () => {
   const projectName = 'HelloWorld';
   let appTree: Tree;
-  const baseOptions: InitGeneratorSchema = { name: projectName, strict: true, silent: true };
+  const baseOptions: InitGeneratorSchema = { name: projectName, strict: true, silent: true, v4: false };
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });

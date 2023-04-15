@@ -1,5 +1,5 @@
-import { createTreeWithEmptyWorkspace } from '@nrwl/devkit/testing';
 import { Tree } from '@nrwl/devkit';
+import { createTreeWithEmptyWorkspace } from '@nrwl/devkit/testing';
 
 import initProjecteGenerator from '../init/generator';
 import generator from './generator';
@@ -51,7 +51,7 @@ describe('new generator', () => {
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
-    await initProjecteGenerator(appTree, { name: projectName, strict: true, silent: true });
+    await initProjecteGenerator(appTree, { name: projectName, strict: true, silent: true, v4: false });
   });
 
   it.each(templates)('%s template function', async (template, name, directory) => {
