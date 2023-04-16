@@ -55,7 +55,7 @@
         "SignalR negotiate HTTP trigger",
         "Timer trigger"
       ],
-      "description": "The template to use for the new function.",
+      "description": "The template to use for the new function.  Note, not all templates are supported for V4 model",
       "x-prompt": "Which template would you like to use to create a new function?",
       "default": "HTTP trigger"
     },
