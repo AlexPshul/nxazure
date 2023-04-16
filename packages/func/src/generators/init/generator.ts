@@ -61,12 +61,8 @@ const createTempFolderWithInit = ({ appNames: { fileName }, v4 }: NormalizedOpti
   try {
     execSync(`func init ${fileName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`, {
       cwd: tempFolder,
-      stdio: 'inherit',
+      stdio: 'ignore',
     });
-
-    // For V4, install the latest preview version.
-    // Looks like the current latest version is not being installed correctly by the tools
-    if (v4) execSync('npm i @azure/functions@preview', { cwd: tempFolder, stdio: 'inherit' });
 
     return { tempFolder, tempProjectRoot: path.posix.join(tempFolder, fileName) };
   } catch (err) {
@@ -277,6 +273,6 @@ export default async function (tree: Tree, options: InitGeneratorSchema) {
     throw e;
   } finally {
     console.log = originalConsoleLog;
-    fs.rmdirSync(tempFolder, { recursive: true });
+    fs.rmSync(tempFolder, { recursive: true });
   }
 }
