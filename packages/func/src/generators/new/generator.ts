@@ -1,37 +1,21 @@
 import { getWorkspaceLayout, names, readJson, Tree } from '@nrwl/devkit';
+import { execSync } from 'child_process';
+import fs from 'fs';
 import path from 'path';
-import { CompilerOptions } from 'typescript';
-import { IMPORT_REGISTRATION, TS_CONFIG_BUILD_FILE } from '../../common';
+import { IMPORT_REGISTRATION } from '../../common';
+import { copyToTempFolder } from '../common';
 import { NewGeneratorSchema } from './schema';
-import templates from './templates.json';
 
-type Binding = {
-  name: string;
-  type: string;
-  direction: string;
-} & Record<string, unknown>;
+const V4_FUNCTIONS_FOLDER = 'src/functions';
 
-type Template = {
-  id: string;
-  runtime: string;
-  files: Record<string, string>;
-  function: {
-    disabled?: boolean;
-    bindings: Binding[];
-  };
-  metadata: {
-    name: string;
-    language: string;
-  };
-};
-
-type NormalizedOptions = Pick<NewGeneratorSchema, 'language' | 'authLevel'> & {
-  funcRoot: string;
+type NormalizedOptions = Pick<NewGeneratorSchema, 'language' | 'authLevel' | 'silent'> & {
+  projectRoot: string;
   funcNames: ReturnType<typeof names>;
-  template: Template;
+  v4: boolean;
+  template: string;
 };
 
-const normalizeOptions = (tree: Tree, { name, project, template, language, ...rest }: NewGeneratorSchema): NormalizedOptions => {
+const normalizeOptions = (tree: Tree, { name, project, template, language, authLevel, silent }: NewGeneratorSchema): NormalizedOptions => {
   const funcNames = names(name);
   const projectNames = names(project);
 
@@ -39,75 +23,56 @@ const normalizeOptions = (tree: Tree, { name, project, template, language, ...re
   const projectRoot = path.join(appsDir, names(project).fileName);
   if (!tree.exists(projectRoot)) throw new Error(`Project [${project} (${projectNames.fileName})] does not exist in the workspace.`);
 
-  const funcRoot = path.join(projectRoot, funcNames.fileName);
-  if (tree.exists(funcRoot))
-    console.log(
-      `\x1B[33mFunction [${name}] already exists in [${project}]`,
-      '\x1B[90m',
-      `I sure hope you know what you're doing. 🤞`,
-      '\x1B[0m',
-    );
-
-  const selectedTemplate = templates.find(t => t.metadata.language === language && t.metadata.name === template);
-  if (!selectedTemplate) throw new Error(`Template '${template}' for language '${language}' was not found`);
+  const settings = readJson<{ Values: { AzureWebJobsFeatureFlags?: string } }>(tree, path.posix.join(projectRoot, 'local.settings.json'));
 
   return {
-    funcRoot,
+    projectRoot,
     funcNames,
-    template: selectedTemplate,
+    template: template.replace(' (V3 only)', ''),
     language,
-    ...rest,
+    v4: !!settings.Values.AzureWebJobsFeatureFlags,
+    authLevel: template === 'HttpTrigger' ? authLevel : undefined,
+    silent,
   };
 };
 
-const createFunctionJson = (tree: Tree, { funcRoot, template, authLevel }: NormalizedOptions) => {
-  const functionJsonObject = { ...template.function };
-  if (template.metadata.language === 'TypeScript') {
-    const {
-      compilerOptions: { outDir },
-    } = readJson<{ compilerOptions: CompilerOptions }>(tree, path.join(funcRoot, '..', TS_CONFIG_BUILD_FILE));
+const copyFiles = (tree: Tree, copyFromRootPath: string, copyToRootPath: string, subFolder: string) => {
+  const sourceFolder = path.posix.join(copyFromRootPath, subFolder);
+  const destinationFolder = path.posix.join(copyToRootPath, subFolder);
 
-    const indexJsRelativePath = path.posix.join('..', outDir, funcRoot, 'index.js');
-    const posixIndexJsRelativePath = path.posix.join(...indexJsRelativePath.split(path.sep));
+  const files = fs.readdirSync(sourceFolder);
+  if (files.length === 0) throw new Error('No files were found to copy');
 
-    if (template.metadata.language === 'TypeScript') {
-      // For TypeScript functions, a scriptFile should be added to the function.json
-      functionJsonObject['scriptFile'] = posixIndexJsRelativePath;
-    }
-  }
+  files.forEach(file => {
+    let content = fs.readFileSync(path.posix.join(sourceFolder, file)).toString();
+    if (file.endsWith('.ts')) content = `${IMPORT_REGISTRATION}\n\n${content}`;
 
-  // Change auth level in httpTrigger bindings
-  functionJsonObject.bindings.filter(b => b.type === 'httpTrigger').forEach(b => (b['authLevel'] = authLevel ?? 'anonymous'));
-
-  tree.write(path.join(funcRoot, 'function.json'), JSON.stringify(functionJsonObject, null, 2));
-};
-
-const createTemplateFiles = (tree: Tree, { funcRoot, template }: NormalizedOptions) => {
-  Object.entries(template.files)
-    .filter(([name]) => !name.endsWith('.dat'))
-    .forEach(([name, content]) => {
-      if (name === 'index.ts') content = `${IMPORT_REGISTRATION}\n${content}`;
-      tree.write(path.join(funcRoot, name), content);
-    });
+    tree.write(path.posix.join(destinationFolder, file), content);
+  });
 };
 
 export default async function (tree: Tree, options: NewGeneratorSchema) {
+  const normalizedOptions = normalizeOptions(tree, options);
+
   const originalConsoleLog = console.log;
+  if (options.silent) console.log = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
+
+  const tempFolder = copyToTempFolder(tree, normalizedOptions.projectRoot, normalizedOptions.v4);
 
   try {
-    if (options.silent)
-      console.log = () => {
-        // Empty on purpose to silent all output
-      };
+    let funcNewCommand = `func new -n ${normalizedOptions.funcNames.fileName} -t "${normalizedOptions.template}"`;
+    if (normalizedOptions.authLevel) funcNewCommand += ` -a ${normalizedOptions.authLevel}`;
 
-    const normalizedOptions = normalizeOptions(tree, options);
+    execSync(funcNewCommand, { cwd: tempFolder, stdio: 'ignore' });
 
-    createFunctionJson(tree, normalizedOptions);
-    createTemplateFiles(tree, normalizedOptions);
+    const subFolder = normalizedOptions.v4 ? V4_FUNCTIONS_FOLDER : normalizedOptions.funcNames.fileName;
+    copyFiles(tree, tempFolder, normalizedOptions.projectRoot, subFolder);
   } catch (e) {
-    console.error(e);
+    console.error(`Could not create ${normalizedOptions.funcNames.fileName} function with template ${normalizedOptions.template}.`);
+    // console.error(e);
     throw e;
   } finally {
     console.log = originalConsoleLog;
+    fs.rmSync(tempFolder, { recursive: true });
   }
 }

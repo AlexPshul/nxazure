@@ -11,9 +11,7 @@ import {
   Tree,
   updateJson,
 } from '@nrwl/devkit';
-import { execSync } from 'child_process';
 import fs, { readFileSync } from 'fs';
-import os from 'os';
 import path from 'path';
 import { CompilerOptions } from 'typescript';
 import {
@@ -25,6 +23,7 @@ import {
   TS_CONFIG_BUILD_FILE,
   TS_CONFIG_WORKSPACE_FILE,
 } from '../../common';
+import { createTempFolderWithInit } from '../common';
 import { InitGeneratorSchema } from './schema';
 
 type NormalizedOptions = {
@@ -53,22 +52,6 @@ const normalizeOptions = (tree: Tree, { name, strict, v4 }: InitGeneratorSchema)
     strict,
     v4,
   };
-};
-
-const createTempFolderWithInit = ({ appNames: { fileName }, v4 }: NormalizedOptions) => {
-  const tempFolder = fs.mkdtempSync(path.posix.join(os.tmpdir(), `func-${fileName}-`));
-
-  try {
-    execSync(`func init ${fileName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`, {
-      cwd: tempFolder,
-      stdio: 'ignore',
-    });
-
-    return { tempFolder, tempProjectRoot: path.posix.join(tempFolder, fileName) };
-  } catch (err) {
-    if (fs.existsSync(tempFolder)) fs.rmdirSync(tempFolder, { recursive: true });
-    throw err;
-  }
 };
 
 const createProjectConfigurationFile = (tree: Tree, { appRoot, appNames: { name } }: NormalizedOptions) => {
@@ -253,7 +236,7 @@ export default async function (tree: Tree, options: InitGeneratorSchema) {
   if (options.silent) console.log = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
 
   const normalizedOptions = normalizeOptions(tree, options);
-  const { tempFolder, tempProjectRoot } = createTempFolderWithInit(normalizedOptions);
+  const { tempFolder, tempProjectRoot } = createTempFolderWithInit(normalizedOptions.appNames.fileName, normalizedOptions.v4);
 
   try {
     createProjectConfigurationFile(tree, normalizedOptions);

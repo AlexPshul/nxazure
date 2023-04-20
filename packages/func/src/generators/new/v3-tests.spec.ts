@@ -1,6 +1,5 @@
 import { Tree } from '@nrwl/devkit';
 import { createTreeWithEmptyWorkspace } from '@nrwl/devkit/testing';
-
 import initProjecteGenerator from '../init/generator';
 import generator from './generator';
 import { NewGeneratorSchema } from './schema';
@@ -17,27 +16,27 @@ jest.mock('@nrwl/devkit', () => {
 const templates = [
   ['Azure Blob Storage trigger', 'Blob', 'blob'],
   ['Azure Cosmos DB trigger', 'CosmosDb', 'cosmos-db'],
-  ['Durable Functions activity', 'DurableFunctionsActivity', 'durable-functions-activity'],
+  ['Durable Functions activity (V3 only)', 'DurableFunctionsActivity', 'durable-functions-activity'],
   ['Durable Functions entity', 'DurableFunctionsEntity', 'durable-functions-entity'],
-  ['Durable Functions Entity HTTP starter', 'DurableFunctionsEntityHttpStart', 'durable-functions-entity-http-start'],
-  ['Durable Functions HTTP starter', 'DurableFunctionsHttpStart', 'durable-functions-http-start'],
+  ['Durable Functions Entity HTTP starter (V3 only)', 'DurableFunctionsEntityHttpStart', 'durable-functions-entity-http-start'],
+  ['Durable Functions HTTP starter (V3 only)', 'DurableFunctionsHttpStart', 'durable-functions-http-start'],
   ['Durable Functions orchestrator', 'DurableFunctionsOrchestrator', 'durable-functions-orchestrator'],
   ['Azure Event Grid trigger', 'EventGrid', 'event-grid'],
   ['Azure Event Hub trigger', 'EventHub', 'event-hub'],
   ['HTTP trigger', 'Http', 'http'],
-  ['IoT Hub (Event Hub)', 'IotHub', 'iot-hub'],
-  ['Kafka output', 'KafkaOutput', 'kafka-output'],
-  ['Kafka trigger', 'KafkaTrigger', 'kafka-trigger'],
+  ['IoT Hub (Event Hub) (V3 only)', 'IotHub', 'iot-hub'],
+  ['Kafka output (V3 only)', 'KafkaOutput', 'kafka-output'],
+  ['Kafka trigger (V3 only)', 'KafkaTrigger', 'kafka-trigger'],
   ['Azure Queue Storage trigger', 'Queue', 'queue'],
-  ['RabbitMQ trigger', 'RabbitMq', 'rabbit-mq'],
-  ['SendGrid', 'SendGrid', 'send-grid'],
+  ['RabbitMQ trigger (V3 only)', 'RabbitMq', 'rabbit-mq'],
+  ['SendGrid (V3 only)', 'SendGrid', 'send-grid'],
   ['Azure Service Bus Queue trigger', 'ServiceBusQueue', 'service-bus-queue'],
   ['Azure Service Bus Topic trigger', 'ServiceBusTopic', 'service-bus-topic'],
-  ['SignalR negotiate HTTP trigger', 'SignalRNegotiate', 'signal-rnegotiate'],
+  ['SignalR negotiate HTTP trigger (V3 only)', 'SignalRNegotiate', 'signal-rnegotiate'],
   ['Timer trigger', 'Timer', 'timer'],
 ] as const;
 
-describe('new generator', () => {
+describe('new generator (V3)', () => {
   const projectName = 'HelloWorld';
   let appTree: Tree;
   const options: NewGeneratorSchema = {

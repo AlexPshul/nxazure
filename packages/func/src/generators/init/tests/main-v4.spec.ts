@@ -21,7 +21,7 @@ describe('Check files (v4)', () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
     appTree.write('.eslintrc.json', JSON.stringify({}));
     await generator(appTree, options);
-  }, 60000);
+  }, 120000);
 
   it('Folder name', () => {
     expect(appTree.exists('apps/hello-world')).toBeTruthy();

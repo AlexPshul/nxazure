@@ -13,7 +13,8 @@
         "$source": "projectName"
       },
       "x-prompt": "What is the name of the project for the executor?",
-      "x-priority": "important"
+      "x-priority": "important",
+      "x-dropdown": "projects"
     },
     "name": {
       "type": "string",
@@ -36,23 +37,23 @@
       "enum": [
         "Azure Blob Storage trigger",
         "Azure Cosmos DB trigger",
-        "Durable Functions activity",
+        "Durable Functions activity (V3 only)",
         "Durable Functions entity",
-        "Durable Functions Entity HTTP starter",
-        "Durable Functions HTTP starter",
+        "Durable Functions Entity HTTP starter (V3 only)",
+        "Durable Functions HTTP starter (V3 only)",
         "Durable Functions orchestrator",
         "Azure Event Grid trigger",
         "Azure Event Hub trigger",
         "HTTP trigger",
-        "IoT Hub (Event Hub)",
-        "Kafka output",
-        "Kafka trigger",
+        "IoT Hub (Event Hub) (V3 only)",
+        "Kafka output (V3 only)",
+        "Kafka trigger (V3 only)",
         "Azure Queue Storage trigger",
-        "RabbitMQ trigger",
-        "SendGrid",
+        "RabbitMQ trigger (V3 only)",
+        "SendGrid (V3 only)",
         "Azure Service Bus Queue trigger",
         "Azure Service Bus Topic trigger",
-        "SignalR negotiate HTTP trigger",
+        "SignalR negotiate HTTP trigger (V3 only)",
         "Timer trigger"
       ],
       "description": "The template to use for the new function.  Note, not all templates are supported for V4 model",
