@@ -113,6 +113,11 @@ const updateWorkspacePackageJson = (tree: Tree, copyFromFolder: string) => {
     });
 
     json.devDependencies = json.devDependencies || {};
+
+    // In most new instances, Node 18 is used. V3 model is using 16.x, which fails on build in that case.
+    // After V3 is deprecated, this can be removed.
+    sourcePackageJson.devDependencies['@types/node'] = '18.x';
+
     Object.keys(sourcePackageJson.devDependencies).forEach(key => {
       json.devDependencies[key] = json.devDependencies[key] || sourcePackageJson.devDependencies[key];
     });
