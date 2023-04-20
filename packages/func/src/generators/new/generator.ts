@@ -1,8 +1,9 @@
-import { getWorkspaceLayout, names, readJson, Tree } from '@nrwl/devkit';
+import { getWorkspaceLayout, names, readJson, Tree, updateJson } from '@nrwl/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { IMPORT_REGISTRATION } from '../../common';
+import { CompilerOptions } from 'typescript';
+import { IMPORT_REGISTRATION, TS_CONFIG_BUILD_FILE } from '../../common';
 import { copyToTempFolder } from '../common';
 import { NewGeneratorSchema } from './schema';
 
@@ -51,6 +52,21 @@ const copyFiles = (tree: Tree, copyFromRootPath: string, copyToRootPath: string,
   });
 };
 
+const fixFunctionsJson = (tree: Tree, { projectRoot, funcNames }: NormalizedOptions) => {
+  const funcRoot = path.posix.join(projectRoot, funcNames.fileName);
+
+  const {
+    compilerOptions: { outDir },
+  } = readJson<{ compilerOptions: CompilerOptions }>(tree, path.join(projectRoot, TS_CONFIG_BUILD_FILE));
+  const indexJsRelativePath = path.posix.join('..', outDir, funcRoot, 'index.js');
+  const posixIndexJsRelativePath = path.posix.join(...indexJsRelativePath.split(path.sep));
+
+  updateJson(tree, path.posix.join(funcRoot, 'function.json'), functionJsonObject => {
+    functionJsonObject['scriptFile'] = posixIndexJsRelativePath;
+    return functionJsonObject;
+  });
+};
+
 export default async function (tree: Tree, options: NewGeneratorSchema) {
   const normalizedOptions = normalizeOptions(tree, options);
 
@@ -67,6 +83,8 @@ export default async function (tree: Tree, options: NewGeneratorSchema) {
 
     const subFolder = normalizedOptions.v4 ? V4_FUNCTIONS_FOLDER : normalizedOptions.funcNames.fileName;
     copyFiles(tree, tempFolder, normalizedOptions.projectRoot, subFolder);
+
+    if (!normalizedOptions.v4) fixFunctionsJson(tree, normalizedOptions);
   } catch (e) {
     console.error(`Could not create ${normalizedOptions.funcNames.fileName} function with template ${normalizedOptions.template}.`);
     // console.error(e);
