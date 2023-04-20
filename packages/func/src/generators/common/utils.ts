@@ -4,8 +4,10 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
+const getEnvTempDir = () => process.env.RUNNER_TEMP || os.tmpdir();
+
 export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
-  const tempFolder = fs.mkdtempSync(path.posix.join(os.tmpdir(), `func-${tempAppName}-`));
+  const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-${tempAppName}-`));
 
   try {
     execSync(`func init ${tempAppName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`, {
@@ -21,7 +23,7 @@ export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
 };
 
 export const copyToTempFolder = (tree: Tree, projectRootPath: string, v4: boolean) => {
-  const tempFolder = fs.mkdtempSync(path.posix.join(os.tmpdir(), `func-copy-`));
+  const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-copy-`));
 
   tree
     .children(projectRootPath)
