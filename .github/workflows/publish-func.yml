@@ -17,6 +17,8 @@ jobs:
         with:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
+      - name: Install func CLI 🛠️
+        run: npm install -g azure-functions-core-tools@4
       - name: Install dependencies 🛠️
         run: npm ci
       - name: Build project 👷‍♂️🏗️

@@ -10,13 +10,11 @@ export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
   const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-${tempAppName}-`));
 
   try {
-    console.info('Command: ', `func init ${tempAppName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`);
     execSync(`func init ${tempAppName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`, {
       cwd: tempFolder,
-      stdio: 'inherit',
+      stdio: 'ignore',
     });
   } catch (err) {
-    console.error(err);
     fs.rmSync(tempFolder, { recursive: true });
     throw err;
   }
