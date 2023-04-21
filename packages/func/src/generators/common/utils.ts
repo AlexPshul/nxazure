@@ -12,7 +12,7 @@ export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
   try {
     execSync(`func init ${tempAppName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`, {
       cwd: tempFolder,
-      stdio: 'ignore',
+      stdio: 'inherit',
     });
   } catch (err) {
     fs.rmSync(tempFolder, { recursive: true });
