@@ -7,14 +7,13 @@ import path from 'path';
 const getEnvTempDir = () => process.env.RUNNER_TEMP || os.tmpdir();
 
 export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
-  console.info('Environment variables: ', process.env);
   const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-${tempAppName}-`));
 
   try {
     console.info('Command: ', `func init ${tempAppName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`);
     execSync(`func init ${tempAppName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`, {
       cwd: tempFolder,
-      stdio: ['ignore', 'ignore', 'inherit'],
+      stdio: 'inherit',
     });
   } catch (err) {
     console.error(err);
