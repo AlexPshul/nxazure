@@ -7,6 +7,7 @@ import path from 'path';
 const getEnvTempDir = () => process.env.RUNNER_TEMP || os.tmpdir();
 
 export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
+  console.info('Environment variables: ', process.env);
   const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-${tempAppName}-`));
 
   try {

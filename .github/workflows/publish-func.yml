@@ -1,5 +1,7 @@
 name: Publish to NPM
 on:
+  push:
+    branches: [master]
   release:
     types: [created]
 
@@ -24,6 +26,7 @@ jobs:
       - name: E2E Testing 🧪
         run: npm run e2e:all
       - name: Publish package on NPM 📦
+        if: ${{ github.event_name == 'release' }}
         run: npm publish dist/packages/func --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
