@@ -15,7 +15,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '18.15'
           registry-url: 'https://registry.npmjs.org'
       - name: Install func CLI 🛠️
         run: npm i -g azure-functions-core-tools@4 --unsafe-perm true

@@ -2,7 +2,7 @@
   "name": "@nxazure/func",
   "author": "Alex Pshul",
   "description": "Nx plugin for Azure Functions to initialize, create, build, run and publish Azure Functions inside your NX workspace.",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "main": "src/index.js",
   "repository": "https://github.com/AlexPshul/nxazure",
   "license": "MIT",
