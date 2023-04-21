@@ -4,7 +4,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-const getEnvTempDir = () => process.env.RUNNER_TEMP || os.tmpdir();
+const getEnvTempDir = () => process.env.RUNNER_TEMP || os.tmpdir(); // This supports not only local dev but also GitHub Actions
 
 export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
   const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-${tempAppName}-`));
@@ -12,7 +12,7 @@ export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
   try {
     execSync(`func init ${tempAppName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`, {
       cwd: tempFolder,
-      stdio: 'inherit',
+      stdio: 'ignore',
     });
   } catch (err) {
     fs.rmSync(tempFolder, { recursive: true });
