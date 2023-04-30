@@ -2,7 +2,7 @@ import { ExecutorContext, readJsonFile, writeJsonFile } from '@nrwl/devkit';
 import { compileTypeScript } from '@nrwl/workspace/src/utilities/typescript/compilation';
 import { execSync } from 'child_process';
 import path from 'path';
-import { CompilerOptions, SourceFile, TransformerFactory, visitEachChild, Visitor, isImportDeclaration } from 'typescript';
+import { CompilerOptions, SourceFile, TransformerFactory, Visitor, isImportDeclaration, visitEachChild } from 'typescript';
 import { TS_CONFIG_BASE_FILE, TS_CONFIG_BUILD_FILE } from '../../common';
 
 const createCombinations = (moduleName: string) => {
