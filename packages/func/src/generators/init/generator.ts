@@ -122,6 +122,12 @@ const updateWorkspacePackageJson = (tree: Tree, copyFromFolder: string) => {
       json.devDependencies[key] = json.devDependencies[key] || sourcePackageJson.devDependencies[key];
     });
 
+    // For V4, the @azure/functions package is moved from devDependencies to dependencies
+    if (sourceDependencies['@azure/functions'] && json.devDependencies['@azure/functions']) {
+      console.log(color.warn('ATTENTION'), 'Upgrading to V4 model requires you to upgrade ALL your existing functions');
+      delete json.devDependencies['@azure/functions'];
+    }
+
     return json;
   });
 
