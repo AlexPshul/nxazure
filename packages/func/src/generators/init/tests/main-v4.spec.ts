@@ -106,7 +106,7 @@ describe('Check files (v4)', () => {
     expect(packageJson).toBeDefined();
 
     const packageJsonObj = JSON.parse(packageJson?.toString() || '{}');
-    expect(packageJsonObj).toHaveProperty('main', 'dist/src/functions/*.js');
+    expect(packageJsonObj).toHaveProperty('main', 'dist/apps/hello-world/src/functions/*.js');
   });
 
   it('Local settings file', () => {
