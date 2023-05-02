@@ -48,7 +48,7 @@ const normalizeOptions = (tree: Tree, { name, project, template, language, authL
   };
 };
 
-const copyFiles = (tree: Tree, copyFromRootPath: string, copyToRootPath: string, subFolder: string) => {
+const copyFiles = (tree: Tree, copyFromRootPath: string, copyToRootPath: string, subFolder: string, v4: boolean) => {
   const sourceFolder = path.posix.join(copyFromRootPath, subFolder);
   const destinationFolder = path.posix.join(copyToRootPath, subFolder);
 
@@ -57,7 +57,7 @@ const copyFiles = (tree: Tree, copyFromRootPath: string, copyToRootPath: string,
 
   files.forEach(file => {
     let content = fs.readFileSync(path.posix.join(sourceFolder, file)).toString();
-    if (file.endsWith('.ts')) content = `${IMPORT_REGISTRATION}\n\n${content}`;
+    if (file.endsWith('.ts')) content = `${IMPORT_REGISTRATION(v4)}\n\n${content}`;
 
     tree.write(path.posix.join(destinationFolder, file), content);
   });
@@ -93,7 +93,7 @@ export default async function (tree: Tree, options: NewGeneratorSchema) {
     execSync(funcNewCommand, { cwd: tempFolder, stdio: 'ignore' });
 
     const subFolder = normalizedOptions.v4 ? V4_FUNCTIONS_FOLDER : normalizedOptions.funcNames.fileName;
-    copyFiles(tree, tempFolder, normalizedOptions.projectRoot, subFolder);
+    copyFiles(tree, tempFolder, normalizedOptions.projectRoot, subFolder, normalizedOptions.v4);
 
     if (!normalizedOptions.v4) fixFunctionsJson(tree, normalizedOptions);
   } catch (e) {

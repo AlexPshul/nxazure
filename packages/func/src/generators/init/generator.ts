@@ -167,13 +167,14 @@ const updateBaseTsConfig = (tree: Tree) => {
 
 const createProjectPackageJson = (tree: Tree, { appRoot, v4 }: NormalizedOptions, copyFromFolder: string) => {
   // This needs to be copied and dependencies + devDependencies removed
-  const sourcePackageJson = readJsonFile<{ dependencies: Record<string, string>; devDependencies: Record<string, string> }>(
+  const sourcePackageJson = readJsonFile<{ dependencies: Record<string, string>; devDependencies: Record<string, string>; main: string }>(
     path.posix.join(copyFromFolder, 'package.json'),
   );
 
-  const azureFunctionsVersion = sourcePackageJson.dependencies['@azure/functions'];
-  sourcePackageJson.dependencies = v4 ? { ['@azure/functions']: azureFunctionsVersion } : {};
+  sourcePackageJson.dependencies = {};
   sourcePackageJson.devDependencies = {};
+
+  if (v4) sourcePackageJson.main = `dist/${appRoot}/src/functions/*.js`;
 
   tree.write(path.posix.join(appRoot, 'package.json'), JSON.stringify(sourcePackageJson, null, 2));
 };
