@@ -171,7 +171,8 @@ const createProjectPackageJson = (tree: Tree, { appRoot, v4 }: NormalizedOptions
     path.posix.join(copyFromFolder, 'package.json'),
   );
 
-  sourcePackageJson.dependencies = {};
+  const azureFunctionsVersion = sourcePackageJson.dependencies['@azure/functions'];
+  sourcePackageJson.dependencies = v4 ? { ['@azure/functions']: azureFunctionsVersion } : {};
   sourcePackageJson.devDependencies = {};
 
   if (v4) sourcePackageJson.main = `dist/${appRoot}/src/functions/*.js`;
