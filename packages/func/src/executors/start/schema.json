@@ -6,95 +6,10 @@
   "description": "",
   "type": "object",
   "properties": {
-    "port": {
-      "type": "number",
-      "description": "The port to start the function app on",
-      "default": 7071,
-      "x-prompt": "What is the port to start the function app on?"
-    },
-    "cors": {
+    "additionalFlags": {
       "type": "string",
-      "description": "A comma separated list of CORS origins with no spaces. Example: https://functions.azure.com,https://functions-staging.azure.com. To allow all, use \"*\" and remove all other origins from the list.",
-      "default": "",
-      "x-prompt": "Add CORS origins to use for the function app?"
-    },
-    "corsCredentials": {
-      "type": "boolean",
-      "description": "Allow cross-origin authenticated requests (i.e. cookies and the Authentication header).",
-      "default": false,
-      "x-prompt": "Enable CORS access-control-allow-credentials?"
-    },
-    "timeout": {
-      "type": "number",
-      "description": "Timeout for the functions host to start in seconds. Default: 20 seconds.",
-      "default": 20,
-      "x-prompt": "Enable CORS access-control-allow-credentials?"
-    },
-    "useHttps": {
-      "type": "boolean",
-      "description": "Bind to https://localhost:{port} rather than http://localhost:{port}. By default it creates and trusts a certificate.",
-      "default": false,
-      "x-prompt": "Generate a certificate and use https?"
-    },
-    "cert": {
-      "type": "string",
-      "description": "for use with --useHttps. The path to a pfx file that contains a private key.",
-      "default": "",
-      "x-prompt": "Use a custom private key for your certificate?"
-    },
-    "password": {
-      "type": "string",
-      "description": "to use with --cert. Either the password, or a file that contains the password for the pfx file",
-      "default": "",
-      "x-prompt": "Provide the password or path to the password file for the pfx."
-    },
-    "languageWorker": {
-      "type": "string",
-      "description": "Arguments to configure the language worker.",
-      "default": "",
-      "x-prompt": "Provide any arguments to configure the language worker."
-    },
-    "noBuild": {
-      "type": "boolean",
-      "description": "Do no build current project before running. For dotnet projects only. Default is set to false.",
-      "default": false,
-      "x-prompt": "Skip building dotnet projects before running?"
-    },
-    "enableAuth": {
-      "type": "boolean",
-      "description": "Enable full authentication handling pipeline.",
-      "default": false,
-      "x-prompt": "Would you like to enable the full authentication handling pipeline?"
-    },
-    "functions": {
-      "type": "string",
-      "description": "A space seperated list of functions to load.",
-      "default": "",
-      "x-prompt": "Load specific functions?"
-    },
-    "verbose": {
-      "type": "boolean",
-      "description": "When false, hides system logs other than warnings and errors.",
-      "default": false,
-      "x-prompt": "Would you like to show system logs in addition to warnings and errors?"
-    },
-    "dotnetIsolatedDebug": {
-      "type": "boolean",
-      "description": "When specified, set to true, pauses the .NET Worker process until a debugger is attached.",
-      "default": false,
-      "x-prompt": "Would you like to pauses the .NET Worker process until a debugger is attached?"
-    },
-    "enableJsonOutput": {
-      "type": "boolean",
-      "description": "Signals to Core Tools and other components that JSON line output console logs, when applicable, should be emitted.",
-      "default": false,
-      "x-prompt": "Would you like to enable, when applicable, emitting JSON line output console logs?"
-    },
-    "jsonOutputFile": {
-      "type": "string",
-      "description": "If provided, a path to the file that will be used to write the output when using --enable-json-output.",
-      "default": "",
-      "x-prompt": "Provide a path a path to the file that will be used to write the output when using --enable-json-output."
+      "description": "Additional flags to pass to the func start command. (port, cors, etc.)",
+      "x-prompt": "Are there any additional flags to start the Azure Functions runtime?"
     }
   },
   "required": []
