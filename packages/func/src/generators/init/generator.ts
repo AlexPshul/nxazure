@@ -158,7 +158,7 @@ const updateBaseTsConfig = (tree: Tree) => {
   if (!tree.exists(TS_CONFIG_BASE_FILE)) tree.write(TS_CONFIG_BASE_FILE, '{}');
 
   updateJson<{ compilerOptions: CompilerOptions }>(tree, TS_CONFIG_BASE_FILE, json => {
-    json.compilerOptions = json.compilerOptions || {};
+    json.compilerOptions = json.compilerOptions || { baseUrl: '.' };
     json.compilerOptions.resolveJsonModule = true;
 
     return json;
