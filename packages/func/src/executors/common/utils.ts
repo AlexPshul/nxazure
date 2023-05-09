@@ -67,7 +67,10 @@ const getFilesForPathInjection = async (appRoot: string) => {
   if (v4) {
     const { main: functionsPathPattern } = readJsonFile<{ main: string }>(path.join(appRoot, 'package.json'));
 
-    return await glob(functionsPathPattern);
+    const functionsPath = path.posix.join(appRoot, functionsPathPattern);
+    const functions = await glob(functionsPath);
+
+    return functions;
   } else {
     const functionJsonFiles = await glob('**/function.json', { cwd: appRoot, ignore: ['**/node_modules/**'] });
 
