@@ -11,6 +11,11 @@
       "description": "The port to start the function app on",
       "default": 7071,
       "x-prompt": "What is the port to start the function app on?"
+    },
+    "additionalFlags": {
+      "type": "string",
+      "description": "Additional flags to pass to the func start command. (port, cors, etc.)",
+      "x-prompt": "Are there any additional flags to start the Azure Functions runtime?"
     }
   },
   "required": []

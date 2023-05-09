@@ -7,9 +7,16 @@ const executor: Executor<StartExecutorSchema> = async (options, context) => {
   const success = await build(context);
 
   if (success) {
-    const cwd = context.workspace?.projects[context.projectName].root;
+    const { workspace, projectName, isVerbose, target } = context;
+    const cwd = workspace?.projects[projectName].root;
 
-    execSync(`func start --port ${options.port}`, {
+    const { port, additionalFlags } = options;
+    const command = `func start --port ${port} ${additionalFlags}`;
+    if (isVerbose) {
+      console.log(`Running ${target.executor} command: ${command}.`);
+    }
+
+    execSync(command, {
       cwd,
       stdio: 'inherit',
     });
