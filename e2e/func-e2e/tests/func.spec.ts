@@ -50,9 +50,7 @@ describe('Project initialization and build', () => {
 
     updateFile(
       funcFilePath,
-      `
-        import '../_registerPaths'; // Import before any other lib imports
-        import { AzureFunction, Context, HttpRequest } from "@azure/functions"
+      ` import { AzureFunction, Context, HttpRequest } from "@azure/functions"
         import { ${lib} } from "@proj/${lib}";
 
         const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -126,10 +124,7 @@ describe('Project initialization and build', () => {
 
     updateFile(
       funcFilePath,
-      `
-        import '../_registerPaths'; // Import before any other lib imports
-
-        import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+      ` import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
         import { ${lib} } from "@proj/${lib}";
 
         export async function hello(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
