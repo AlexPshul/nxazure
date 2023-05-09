@@ -60,20 +60,31 @@ const getCopyPackageToAppTransformerFactory = (context: ExecutorContext) => {
   return copyPackagesToApp;
 };
 
-const injectTsPathsV3 = async (appRoot: string, registerPathsFilePath: string) => {
-  const functionJsonFiles = await glob('**/function.json', { cwd: appRoot, ignore: ['**/node_modules/**'] });
+const getFilesForPathInjection = async (appRoot: string) => {
+  const localSettings = readJsonFile<{ Values: { AzureWebJobsFeatureFlags?: string } }>(path.join(appRoot, 'local.settings.json'));
+  const v4 = localSettings.Values.AzureWebJobsFeatureFlags === 'EnableWorkerIndexing';
 
-  const jsFiles = await Promise.all(
-    functionJsonFiles
-      .map(file => path.join(appRoot, file))
-      .map(async file => {
-        const { scriptFile } = await readJsonFile<{ scriptFile: string }>(file);
-        return path.join(path.dirname(file), scriptFile);
-      }),
-  );
+  if (v4) {
+    const { main: functionsPathPattern } = readJsonFile<{ main: string }>(path.join(appRoot, 'package.json'));
 
-  await Promise.all(
-    jsFiles.map(async filePath => {
+    return await glob(functionsPathPattern);
+  } else {
+    const functionJsonFiles = await glob('**/function.json', { cwd: appRoot, ignore: ['**/node_modules/**'] });
+
+    return await Promise.all(
+      functionJsonFiles
+        .map(file => path.join(appRoot, file))
+        .map(async file => {
+          const { scriptFile } = await readJsonFile<{ scriptFile: string }>(file);
+          return path.join(path.dirname(file), scriptFile);
+        }),
+    );
+  }
+};
+
+const injectFilesWithPathRegistration = (filePaths: string[], registerPathsFilePath: string) => {
+  return Promise.all(
+    filePaths.map(async filePath => {
       const relativePath = path.relative(path.dirname(filePath), registerPathsFilePath).replace(/\\/g, '/');
 
       const content = await fs.promises.readFile(filePath, 'utf-8');
@@ -115,8 +126,11 @@ export const build = async (context: ExecutorContext) => {
   });
 
   console.log(`Injecting tsconfig paths into function files for project "${context.projectName}"...`);
+
   const registerPathsFilePath = path.join(outputPath, appRoot, `${registrationFileName}.js`);
-  await injectTsPathsV3(appRoot, registerPathsFilePath);
+  const filesToInject = await getFilesForPathInjection(appRoot);
+  await injectFilesWithPathRegistration(filesToInject, registerPathsFilePath);
+
   console.log(`Injected tsconfig paths into function files for project "${context.projectName}".`);
 
   return success;
