@@ -1,4 +1,4 @@
-import { ensureNxProject, readJson, runNxCommandAsync, uniq, updateFile } from '@nrwl/nx-plugin/testing';
+import { ensureNxProject, readJson, runNxCommandAsync, uniq, updateFile } from '@nx/plugin/testing';
 import { CompilerOptions } from 'typescript';
 
 describe('Project initialization and build', () => {
@@ -44,7 +44,7 @@ describe('Project initialization and build', () => {
 
     await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
     await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
-    await runNxCommandAsync(`generate @nrwl/js:library ${lib}`);
+    await runNxCommandAsync(`generate @nx/js:library ${lib}`);
 
     const funcFilePath = `apps/${project}/${func}/index.ts`;
 
@@ -120,7 +120,7 @@ describe('Project initialization and build', () => {
 
     await runNxCommandAsync(`generate @nxazure/func:init ${project} --v4`);
     await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
-    await runNxCommandAsync(`generate @nrwl/js:library ${lib}`);
+    await runNxCommandAsync(`generate @nx/js:library ${lib}`);
 
     const funcFilePath = `apps/${project}/${func}/index.ts`;
 

@@ -1,4 +1,4 @@
-import { getWorkspaceLayout, names, readJson, Tree, updateJson } from '@nrwl/devkit';
+import { getWorkspaceLayout, names, readJson, Tree, updateJson } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';

@@ -1,4 +1,4 @@
-import { Executor } from '@nrwl/devkit';
+import { Executor } from '@nx/devkit';
 import { execSync } from 'child_process';
 import { build } from '../common/utils';
 import { StartExecutorSchema } from './schema';

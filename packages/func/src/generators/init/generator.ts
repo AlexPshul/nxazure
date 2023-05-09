@@ -10,7 +10,7 @@ import {
   readProjectConfiguration,
   Tree,
   updateJson,
-} from '@nrwl/devkit';
+} from '@nx/devkit';
 import fs, { readFileSync } from 'fs';
 import path from 'path';
 import { CompilerOptions } from 'typescript';

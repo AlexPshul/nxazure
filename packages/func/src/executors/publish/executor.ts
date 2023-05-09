@@ -1,4 +1,4 @@
-import { Executor, readJsonFile } from '@nrwl/devkit';
+import { Executor, readJsonFile } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';

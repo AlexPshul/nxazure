@@ -1,4 +1,4 @@
-import { Tree } from '@nrwl/devkit';
+import { Tree } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';

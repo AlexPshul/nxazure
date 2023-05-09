@@ -1,5 +1,5 @@
-import { ExecutorContext, readJsonFile, writeJsonFile } from '@nrwl/devkit';
-import { compileTypeScript } from '@nrwl/workspace/src/utilities/typescript/compilation';
+import { ExecutorContext, readJsonFile, writeJsonFile } from '@nx/devkit';
+import { compileTypeScript } from '@nx/workspace/src/utilities/typescript/compilation';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import { glob } from 'glob';
