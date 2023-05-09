@@ -7,7 +7,7 @@ import { build } from '../common/utils';
 import { PublishExecutorSchema } from './schema';
 
 const executor: Executor<PublishExecutorSchema> = async (options, context) => {
-  const success = build(context);
+  const success = await build(context);
 
   if (success) {
     const cwd = context.workspace?.projects[context.projectName].root;

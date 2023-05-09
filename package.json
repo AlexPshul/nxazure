@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@swc/helpers": "~0.4.11",
+    "glob": "^10.2.2",
     "tslib": "^2.3.0"
   }
 }

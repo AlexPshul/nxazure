@@ -1,10 +1,10 @@
-import { StartExecutorSchema } from './schema';
 import { Executor } from '@nrwl/devkit';
-import { build } from '../common/utils';
 import { execSync } from 'child_process';
+import { build } from '../common/utils';
+import { StartExecutorSchema } from './schema';
 
 const executor: Executor<StartExecutorSchema> = async (options, context) => {
-  const success = build(context);
+  const success = await build(context);
 
   if (success) {
     const cwd = context.workspace?.projects[context.projectName].root;

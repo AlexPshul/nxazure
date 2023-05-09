@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { CompilerOptions } from 'typescript';
-import { IMPORT_REGISTRATION, TS_CONFIG_BUILD_FILE } from '../../common';
+import { TS_CONFIG_BUILD_FILE } from '../../common';
 import { copyToTempFolder } from '../common';
 import { TemplateValues } from './consts';
 import { NewGeneratorSchema } from './schema';
@@ -48,19 +48,16 @@ const normalizeOptions = (tree: Tree, { name, project, template, language, authL
   };
 };
 
-const copyFiles = (tree: Tree, copyFromRootPath: string, copyToRootPath: string, subFolder: string, v4: boolean) => {
+const copyFiles = (tree: Tree, copyFromRootPath: string, copyToRootPath: string, subFolder: string) => {
   const sourceFolder = path.posix.join(copyFromRootPath, subFolder);
   const destinationFolder = path.posix.join(copyToRootPath, subFolder);
 
   const files = fs.readdirSync(sourceFolder);
   if (files.length === 0) throw new Error('No files were found to copy');
 
-  files.forEach(file => {
-    let content = fs.readFileSync(path.posix.join(sourceFolder, file)).toString();
-    if (file.endsWith('.ts')) content = `${IMPORT_REGISTRATION(v4)}\n\n${content}`;
-
-    tree.write(path.posix.join(destinationFolder, file), content);
-  });
+  files
+    .map(file => ({ destination: path.join(destinationFolder, file), content: fs.readFileSync(path.join(sourceFolder, file)).toString() }))
+    .forEach(({ destination, content }) => tree.write(destination, content));
 };
 
 const fixFunctionsJson = (tree: Tree, { projectRoot, funcNames }: NormalizedOptions) => {
@@ -93,7 +90,7 @@ export default async function (tree: Tree, options: NewGeneratorSchema) {
     execSync(funcNewCommand, { cwd: tempFolder, stdio: 'ignore' });
 
     const subFolder = normalizedOptions.v4 ? V4_FUNCTIONS_FOLDER : normalizedOptions.funcNames.fileName;
-    copyFiles(tree, tempFolder, normalizedOptions.projectRoot, subFolder, normalizedOptions.v4);
+    copyFiles(tree, tempFolder, normalizedOptions.projectRoot, subFolder);
 
     if (!normalizedOptions.v4) fixFunctionsJson(tree, normalizedOptions);
   } catch (e) {

@@ -18,7 +18,7 @@ import {
   color,
   FUNC_PACKAGE_NAME,
   GLOBAL_NAME,
-  REGISTRATION_FILE,
+  registrationFileName,
   TS_CONFIG_BASE_FILE,
   TS_CONFIG_BUILD_FILE,
   TS_CONFIG_WORKSPACE_FILE,
@@ -189,7 +189,7 @@ const copyFilesFromTemp = (tree: Tree, { appRoot }: NormalizedOptions, tempFolde
 
 const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
   tree.write(
-    path.posix.join(appRoot, REGISTRATION_FILE),
+    path.posix.join(appRoot, `${registrationFileName}.ts`),
     `
     import { register } from 'tsconfig-paths';
     import * as tsConfig from '../../${TS_CONFIG_BASE_FILE}';
