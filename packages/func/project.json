@@ -32,6 +32,11 @@
             "input": "./packages/func",
             "glob": "executors.json",
             "output": "."
+          },
+          {
+            "input": "./packages/func",
+            "glob": "migrations.json",
+            "output": "."
           }
         ]
       }
@@ -44,7 +49,8 @@
           "packages/func/**/*.ts",
           "packages/func/generators.json",
           "packages/func/executors.json",
-          "packages/func/package.json"
+          "packages/func/package.json",
+          "packages/func/migrations.json"
         ]
       }
     },

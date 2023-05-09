@@ -10,5 +10,8 @@
   "executors": "./executors.json",
   "publishConfig": {
     "access": "public"
+  },
+  "nx-migrations": {
+    "migrations": "./migrations.json"
   }
 }
