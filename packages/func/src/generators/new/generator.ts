@@ -1,20 +1,25 @@
-import { getWorkspaceLayout, names, readJson, Tree, updateJson } from '@nrwl/devkit';
+import { getWorkspaceLayout, names, readJson, Tree, updateJson } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { CompilerOptions } from 'typescript';
-import { IMPORT_REGISTRATION, TS_CONFIG_BUILD_FILE } from '../../common';
+import { TS_CONFIG_BUILD_FILE } from '../../common';
 import { copyToTempFolder } from '../common';
+import { TemplateValues } from './consts';
 import { NewGeneratorSchema } from './schema';
 
 const V4_FUNCTIONS_FOLDER = 'src/functions';
 
-type NormalizedOptions = Pick<NewGeneratorSchema, 'language' | 'authLevel' | 'silent'> & {
+type Template = (typeof TemplateValues)[number];
+
+type NormalizedOptions = Pick<NewGeneratorSchema, 'language' | 'authLevel' | 'silent' | 'template'> & {
   projectRoot: string;
   funcNames: ReturnType<typeof names>;
   v4: boolean;
-  template: string;
+  template: Template;
 };
+
+const isTemplateValid = (template: string): template is Template => TemplateValues.includes(template as Template);
 
 const normalizeOptions = (tree: Tree, { name, project, template, language, authLevel, silent }: NewGeneratorSchema): NormalizedOptions => {
   const funcNames = names(name);
@@ -26,12 +31,18 @@ const normalizeOptions = (tree: Tree, { name, project, template, language, authL
 
   const settings = readJson<{ Values: { AzureWebJobsFeatureFlags?: string } }>(tree, path.posix.join(projectRoot, 'local.settings.json'));
 
+  const v4 = !!settings.Values.AzureWebJobsFeatureFlags;
+  if (v4 && template.endsWith('(V3 only)')) throw new Error(`Template [${template}] is not supported in V4.`);
+
+  const cleanTemplateName = template.replace(' (V3 only)', '');
+  if (!isTemplateValid(cleanTemplateName)) throw new Error(`Template [${template}] is not supported.`);
+
   return {
     projectRoot,
     funcNames,
-    template: template.replace(' (V3 only)', ''),
+    template: cleanTemplateName as NormalizedOptions['template'],
     language,
-    v4: !!settings.Values.AzureWebJobsFeatureFlags,
+    v4,
     authLevel: template === 'HttpTrigger' ? authLevel : undefined,
     silent,
   };
@@ -44,12 +55,9 @@ const copyFiles = (tree: Tree, copyFromRootPath: string, copyToRootPath: string,
   const files = fs.readdirSync(sourceFolder);
   if (files.length === 0) throw new Error('No files were found to copy');
 
-  files.forEach(file => {
-    let content = fs.readFileSync(path.posix.join(sourceFolder, file)).toString();
-    if (file.endsWith('.ts')) content = `${IMPORT_REGISTRATION}\n\n${content}`;
-
-    tree.write(path.posix.join(destinationFolder, file), content);
-  });
+  files
+    .map(file => ({ destination: path.join(destinationFolder, file), content: fs.readFileSync(path.join(sourceFolder, file)).toString() }))
+    .forEach(({ destination, content }) => tree.write(destination, content));
 };
 
 const fixFunctionsJson = (tree: Tree, { projectRoot, funcNames }: NormalizedOptions) => {
@@ -86,8 +94,7 @@ export default async function (tree: Tree, options: NewGeneratorSchema) {
 
     if (!normalizedOptions.v4) fixFunctionsJson(tree, normalizedOptions);
   } catch (e) {
-    console.error(`Could not create ${normalizedOptions.funcNames.fileName} function with template ${normalizedOptions.template}.`);
-    // console.error(e);
+    console.error(`Could not create ${normalizedOptions.funcNames.fileName} function with template ${normalizedOptions.template}.`, e);
     throw e;
   } finally {
     console.log = originalConsoleLog;

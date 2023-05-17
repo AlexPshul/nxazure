@@ -1,0 +1,10 @@
+{
+  "generators": {
+    "remove-import-register-paths": {
+      "version": "1.0.13",
+      "description": "This version injects the import during the build process, eliminating the need for importing the .ts file in each file",
+      "cli": "nx",
+      "implementation": "./src/migrations/remove-import-register-paths/remove-import-register-paths"
+    }
+  }
+}

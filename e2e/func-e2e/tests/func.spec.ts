@@ -1,4 +1,4 @@
-import { ensureNxProject, runNxCommandAsync, uniq, updateFile, readJson } from '@nrwl/nx-plugin/testing';
+import { ensureNxProject, readJson, runNxCommandAsync, uniq, updateFile } from '@nx/plugin/testing';
 import { CompilerOptions } from 'typescript';
 
 describe('Project initialization and build', () => {
@@ -44,15 +44,13 @@ describe('Project initialization and build', () => {
 
     await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
     await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
-    await runNxCommandAsync(`generate @nrwl/js:library ${lib}`);
+    await runNxCommandAsync(`generate @nx/js:library ${lib}`);
 
     const funcFilePath = `apps/${project}/${func}/index.ts`;
 
     updateFile(
       funcFilePath,
-      `
-        import '../_registerPaths'; // Import before any other lib imports
-        import { AzureFunction, Context, HttpRequest } from "@azure/functions"
+      ` import { AzureFunction, Context, HttpRequest } from "@azure/functions"
         import { ${lib} } from "@proj/${lib}";
 
         const httpTrigger: AzureFunction = async function (context: Context, req: HttpRequest): Promise<void> {
@@ -86,6 +84,82 @@ describe('Project initialization and build', () => {
   it('Use no strict mode', async () => {
     const project = uniq('func');
     await runNxCommandAsync(`generate @nxazure/func:init ${project} --no-strict`);
+
+    const tsConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.json`);
+    const tsBuildConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.build.json`);
+
+    expect(tsConfig.compilerOptions.strict).toBe(false);
+    expect(tsBuildConfig.compilerOptions.strict).toBe(false);
+  }, 120000);
+
+  it('should init & build and empty workspace with a functions app (V4)', async () => {
+    const project = uniq('func');
+    await runNxCommandAsync(`generate @nxazure/func:init ${project} --v4`);
+    const buildResult = await runNxCommandAsync(`build ${project}`);
+
+    expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
+  }, 120000);
+
+  it('should init & build a workspace with a functions app and a function (V4)', async () => {
+    const project = uniq('func');
+    const func = 'hello';
+
+    await runNxCommandAsync(`generate @nxazure/func:init ${project} --v4`);
+    await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
+    const buildResult = await runNxCommandAsync(`build ${project}`);
+
+    expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
+  }, 120000);
+
+  it('should init & build a workspace with a js lib functions app and a function (V4)', async () => {
+    const project = uniq('func');
+    const lib = uniq('lib');
+    const func = 'hello';
+
+    await runNxCommandAsync(`generate @nxazure/func:init ${project} --v4`);
+    await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
+    await runNxCommandAsync(`generate @nx/js:library ${lib}`);
+
+    const funcFilePath = `apps/${project}/${func}/index.ts`;
+
+    updateFile(
+      funcFilePath,
+      ` import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+        import { ${lib} } from "@proj/${lib}";
+
+        export async function hello(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+            const name = request.query.get('name') || await request.text() || 'world';
+
+            return { body: ${lib}() };
+        };
+
+        app.http('hello', {
+            methods: ['GET', 'POST'],
+            authLevel: 'anonymous',
+            handler: hello
+        });
+    `,
+    );
+
+    const buildResult = await runNxCommandAsync(`build ${project}`);
+
+    expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
+  }, 120000);
+
+  it('Use strict mode (V4)', async () => {
+    const project = uniq('func');
+    await runNxCommandAsync(`generate @nxazure/func:init ${project} --v4`);
+
+    const tsConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.json`);
+    const tsBuildConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.build.json`);
+
+    expect(tsConfig.compilerOptions.strict).toBe(true);
+    expect(tsBuildConfig.compilerOptions.strict).toBe(true);
+  }, 120000);
+
+  it('Use no strict mode (V4)', async () => {
+    const project = uniq('func');
+    await runNxCommandAsync(`generate @nxazure/func:init ${project} --no-strict --v4`);
 
     const tsConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.json`);
     const tsBuildConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.build.json`);

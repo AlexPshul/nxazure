@@ -1,10 +1,10 @@
-import { Tree } from '@nrwl/devkit';
-import { createTreeWithEmptyWorkspace } from '@nrwl/devkit/testing';
+import { Tree } from '@nx/devkit';
+import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import generator from '../generator';
 import { InitGeneratorSchema } from '../schema';
 
-jest.mock('@nrwl/devkit', () => {
-  const originalModule = jest.requireActual('@nrwl/devkit');
+jest.mock('@nx/devkit', () => {
+  const originalModule = jest.requireActual('@nx/devkit');
 
   return {
     ...originalModule,

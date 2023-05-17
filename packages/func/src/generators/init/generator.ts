@@ -10,7 +10,7 @@ import {
   readProjectConfiguration,
   Tree,
   updateJson,
-} from '@nrwl/devkit';
+} from '@nx/devkit';
 import fs, { readFileSync } from 'fs';
 import path from 'path';
 import { CompilerOptions } from 'typescript';
@@ -18,7 +18,7 @@ import {
   color,
   FUNC_PACKAGE_NAME,
   GLOBAL_NAME,
-  REGISTRATION_FILE,
+  registrationFileName,
   TS_CONFIG_BASE_FILE,
   TS_CONFIG_BUILD_FILE,
   TS_CONFIG_WORKSPACE_FILE,
@@ -122,6 +122,12 @@ const updateWorkspacePackageJson = (tree: Tree, copyFromFolder: string) => {
       json.devDependencies[key] = json.devDependencies[key] || sourcePackageJson.devDependencies[key];
     });
 
+    // For V4, the @azure/functions package is moved from devDependencies to dependencies
+    if (sourceDependencies['@azure/functions'] && json.devDependencies['@azure/functions']) {
+      console.log(color.warn('ATTENTION'), 'Upgrading to V4 model requires you to upgrade ALL your existing functions');
+      delete json.devDependencies['@azure/functions'];
+    }
+
     return json;
   });
 
@@ -152,21 +158,24 @@ const updateBaseTsConfig = (tree: Tree) => {
   if (!tree.exists(TS_CONFIG_BASE_FILE)) tree.write(TS_CONFIG_BASE_FILE, '{}');
 
   updateJson<{ compilerOptions: CompilerOptions }>(tree, TS_CONFIG_BASE_FILE, json => {
-    json.compilerOptions = json.compilerOptions || {};
+    json.compilerOptions = json.compilerOptions || { baseUrl: '.' };
     json.compilerOptions.resolveJsonModule = true;
 
     return json;
   });
 };
 
-const createProjectPackageJson = (tree: Tree, { appRoot }: NormalizedOptions, copyFromFolder: string) => {
+const createProjectPackageJson = (tree: Tree, { appRoot, v4 }: NormalizedOptions, copyFromFolder: string) => {
   // This needs to be copied and dependencies + devDependencies removed
-  const sourcePackageJson = readJsonFile<{ dependencies: Record<string, string>; devDependencies: Record<string, string> }>(
+  const sourcePackageJson = readJsonFile<{ dependencies: Record<string, string>; devDependencies: Record<string, string>; main: string }>(
     path.posix.join(copyFromFolder, 'package.json'),
   );
 
-  sourcePackageJson.dependencies = {};
+  const azureFunctionsVersion = sourcePackageJson.dependencies['@azure/functions'];
+  sourcePackageJson.dependencies = v4 ? { ['@azure/functions']: azureFunctionsVersion } : {};
   sourcePackageJson.devDependencies = {};
+
+  if (v4) sourcePackageJson.main = `dist/${appRoot}/src/functions/*.js`;
 
   tree.write(path.posix.join(appRoot, 'package.json'), JSON.stringify(sourcePackageJson, null, 2));
 };
@@ -180,7 +189,7 @@ const copyFilesFromTemp = (tree: Tree, { appRoot }: NormalizedOptions, tempFolde
 
 const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
   tree.write(
-    path.posix.join(appRoot, REGISTRATION_FILE),
+    path.posix.join(appRoot, `${registrationFileName}.ts`),
     `
     import { register } from 'tsconfig-paths';
     import * as tsConfig from '../../${TS_CONFIG_BASE_FILE}';

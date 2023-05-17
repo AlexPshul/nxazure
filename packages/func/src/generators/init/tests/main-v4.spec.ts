@@ -1,10 +1,10 @@
-import { Tree, readProjectConfiguration } from '@nrwl/devkit';
-import { createTreeWithEmptyWorkspace } from '@nrwl/devkit/testing';
+import { Tree, readProjectConfiguration } from '@nx/devkit';
+import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import generator from '../generator';
 import { InitGeneratorSchema } from '../schema';
 
-jest.mock('@nrwl/devkit', () => {
-  const originalModule = jest.requireActual('@nrwl/devkit');
+jest.mock('@nx/devkit', () => {
+  const originalModule = jest.requireActual('@nx/devkit');
 
   return {
     ...originalModule,
@@ -106,7 +106,7 @@ describe('Check files (v4)', () => {
     expect(packageJson).toBeDefined();
 
     const packageJsonObj = JSON.parse(packageJson?.toString() || '{}');
-    expect(packageJsonObj).toHaveProperty('main', 'dist/src/functions/*.js');
+    expect(packageJsonObj).toHaveProperty('main', 'dist/apps/hello-world/src/functions/*.js');
   });
 
   it('Local settings file', () => {
