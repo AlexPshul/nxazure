@@ -26,7 +26,7 @@ const executor: Executor<PublishExecutorSchema> = async (options, context) => {
     }
     execSync(installCommand, { stdio: 'inherit', cwd });
 
-    const publishCommand = `func azure functionapp publish ${name} ${additionalFlags}`;
+    const publishCommand = `func azure functionapp publish ${name}${additionalFlags ? ` ${additionalFlags}` : ''}`;
     if (isVerbose) {
       console.log(`Running ${target.executor} command: ${publishCommand}.`);
     }

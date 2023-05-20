@@ -11,7 +11,7 @@ const executor: Executor<StartExecutorSchema> = async (options, context) => {
     const cwd = workspace?.projects[projectName].root;
 
     const { port, additionalFlags } = options;
-    const command = `func start --port ${port} ${additionalFlags}`;
+    const command = `func start --port ${port}${additionalFlags ? ` ${additionalFlags}` : ''}`;
     if (isVerbose) {
       console.log(`Running ${target.executor} command: ${command}.`);
     }
