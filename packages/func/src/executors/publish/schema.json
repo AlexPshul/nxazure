@@ -15,7 +15,14 @@
       },
       "x-prompt": "What is the name of the function app on Azure?",
       "x-priority": "important"
+    },
+    "additionalFlags": {
+      "type": "string",
+      "description": "Additional flags to pass to the func start command. (port, cors, etc.)",
+      "x-prompt": "Are there any additional flags to start the Azure Functions runtime?"
     }
   },
-  "required": ["name"]
+  "required": [
+    "name"
+  ]
 }
