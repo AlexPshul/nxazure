@@ -1,6 +1,6 @@
 import { Executor } from '@nx/devkit';
 import { execSync } from 'child_process';
-import { build } from '../common/utils';
+import { build } from '../common/build';
 import { StartExecutorSchema } from './schema';
 
 const executor: Executor<StartExecutorSchema> = async (options, context) => {

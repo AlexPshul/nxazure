@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { color } from '../../common';
-import { build } from '../common/utils';
+import { build } from '../common/build';
 import { PublishExecutorSchema } from './schema';
 
 const executor: Executor<PublishExecutorSchema> = async (options, context) => {
