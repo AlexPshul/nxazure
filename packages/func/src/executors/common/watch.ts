@@ -41,6 +41,9 @@ const reportProgress = async (
     case 6031: // When the build watch starts (only the first time) we delete the output folder
       fs.rmSync(outputPath, { recursive: true, force: true });
       break;
+    case 6032: // File change detected. Starting incremental compilation...
+      console.log(color.info(`[${projectName}]`), formatDiagnosticsWithColorAndContext([diagnostic], formatHost));
+      break;
     default:
       if (errors > 0) console.log(color.error(`[${projectName}]`), formatDiagnosticsWithColorAndContext([diagnostic], formatHost));
       else {
