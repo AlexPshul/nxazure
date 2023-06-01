@@ -13,6 +13,13 @@
     "lint-staged": "lint-staged"
   },
   "devDependencies": {
+    "@nx/devkit": "16.1.3",
+    "@nx/eslint-plugin": "16.1.3",
+    "@nx/jest": "16.1.3",
+    "@nx/js": "16.1.3",
+    "@nx/linter": "16.1.3",
+    "@nx/plugin": "16.1.3",
+    "@nx/workspace": "16.1.3",
     "@swc-node/register": "^1.4.2",
     "@swc/cli": "0.1.62",
     "@swc/core": "^1.2.173",
@@ -33,18 +40,12 @@
     "ts-jest": "29.1.0",
     "ts-node": "10.9.1",
     "tsc-files": "^1.1.3",
-    "typescript": "5.0.4",
-    "@nx/devkit": "16.1.3",
-    "@nx/workspace": "16.1.3",
-    "@nx/js": "16.1.3",
-    "@nx/linter": "16.1.3",
-    "@nx/eslint-plugin": "16.1.3",
-    "@nx/plugin": "16.1.3",
-    "@nx/jest": "16.1.3"
+    "typescript": "5.0.4"
   },
   "dependencies": {
     "@swc/helpers": "0.5.1",
     "glob": "^10.2.2",
+    "tree-kill": "^1.2.2",
     "tslib": "^2.3.0"
   }
 }
