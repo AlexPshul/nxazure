@@ -20,7 +20,7 @@ const executor: Executor<StartExecutorSchema> = async (options, context) => {
     const cwd = workspace?.projects[projectName].root;
     spawned = spawn('func', params, { cwd, detached: false, shell: true });
 
-    spawned.stdout.on('data', data => console.log(data.toString()));
+    spawned.stdout.on('data', data => console.log(color.info(`[${projectName}]`), data.toString()));
     spawned.stderr.on('data', data => console.error(color.error(`ERROR [${projectName}]:`), data.toString()));
   };
 
