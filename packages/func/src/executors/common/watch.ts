@@ -1,4 +1,5 @@
 import { ExecutorContext } from '@nx/devkit';
+import { readTsConfig } from '@nx/workspace/src/utilities/ts-config';
 import fs from 'fs';
 import {
   Diagnostic,
@@ -64,9 +65,11 @@ export const watch = async (context: ExecutorContext, onBuild?: () => void, onEr
     outputPath: options.outputPath,
   };
 
+  const config = readTsConfig(options.tsConfig);
+
   const host = createWatchCompilerHost(
-    options.tsConfig,
-    { ...options, noEmitOnError: true },
+    config.fileNames,
+    { ...config.options, ...options, noEmitOnError: true },
     sys,
     createSemanticDiagnosticsBuilderProgram,
     diagnostic => reportErrorDiagnostics(context.projectName, diagnostic, onError),
