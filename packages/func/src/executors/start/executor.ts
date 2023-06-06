@@ -3,12 +3,14 @@ import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import treeKill from 'tree-kill';
 import { color } from '../../common';
 import { build, watch } from '../common';
+import { FuncLogger } from './func-logger';
 import { StartExecutorSchema } from './schema';
 
 const executor: Executor<StartExecutorSchema> = async (options, context) => {
   const { port, disableWatch, additionalFlags } = options;
   const { workspace, projectName, isVerbose, target } = context;
 
+  const logger = new FuncLogger(projectName);
   let spawned: ChildProcessWithoutNullStreams | null = null;
 
   const funcStart = () => {
@@ -20,8 +22,8 @@ const executor: Executor<StartExecutorSchema> = async (options, context) => {
     const cwd = workspace?.projects[projectName].root;
     spawned = spawn('func', params, { cwd, detached: false, shell: true });
 
-    spawned.stdout.on('data', data => console.log(color.info(`[${projectName}]`), data.toString()));
-    spawned.stderr.on('data', data => console.error(color.error(`ERROR [${projectName}]:`), data.toString()));
+    spawned.stdout.on('data', data => logger.logData(data?.toString()));
+    spawned.stderr.on('data', data => logger.logError(data?.toString()));
   };
 
   if (disableWatch) {
