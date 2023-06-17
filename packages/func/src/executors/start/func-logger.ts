@@ -22,6 +22,7 @@ const splitTimestampFromMessage = (line: string) => ({
 export class FuncLogger {
   private buffer: BufferMessage[] = [];
   private isInitializing = false;
+  private isPrintingFunctions = false;
   private isReportingError = false;
   private colorFunction = color.info;
 
@@ -54,6 +55,7 @@ export class FuncLogger {
       case initializationLines.initialized:
         this.printProjectLine();
         this.printProjectLine(color.info(line));
+        this.isPrintingFunctions = false;
         break;
       case initializationLines.toolsVersion:
       case initializationLines.runtimeVersion:
@@ -63,6 +65,7 @@ export class FuncLogger {
         this.printProjectLine();
         this.printProjectLine(color.data(line));
         this.printProjectLine();
+        this.isPrintingFunctions = true;
         break;
       case ENDPOINT_REGEX.test(line) ? line : '': {
         const endOfFuncNameIndex = line.indexOf(':');
@@ -70,6 +73,11 @@ export class FuncLogger {
         const name = line.substring(0, endOfFuncNameIndex + 1);
         const endpoint = line.substring(endOfFuncNameIndex + 2);
         this.printProjectLine(color.data(name), color.endpoint(endpoint));
+        break;
+      }
+      case this.isPrintingFunctions ? line : '': {
+        const [name, type] = line.split(':');
+        this.printProjectLine(`${color.dataLight(name)}: ${type}`);
         break;
       }
       case TIMESTAMP_REGEX.test(line) ? line : '': {
@@ -92,7 +100,7 @@ export class FuncLogger {
   }
 
   private logBuffer() {
-    if (this.isInitializing) return;
+    if (this.isInitializing) return; // If we run multiple functions we want the initialization to be printed for the same app in a one batch
     if (this.buffer.length === 0) return;
 
     this.getBufferLines('initialization').forEach(line => this.printInitializationLine(line));
