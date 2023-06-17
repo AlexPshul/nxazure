@@ -13,7 +13,6 @@ const initializationLines = {
 const ENDPOINT_REGEX = /^.*: \[.*\] https?:\/\/.*$/;
 const TIMESTAMP_REGEX = /^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/;
 const FAILED_EXECUTION_REGEX = /^Executed '.*' \(Failed, Id=.*, Duration=.*\)/;
-const EXCEPTION_LINE_REGEX = /^.*: Exception while executing function: .*Result: Failure/;
 
 const splitTimestampFromMessage = (line: string) => ({
   timestamp: line.substring(0, 26),
@@ -23,6 +22,7 @@ const splitTimestampFromMessage = (line: string) => ({
 export class FuncLogger {
   private buffer: BufferMessage[] = [];
   private isInitializing = false;
+  private isReportingError = false;
   private colorFunction = color.info;
 
   constructor(private readonly projectName: string) {
@@ -100,9 +100,15 @@ export class FuncLogger {
     this.getBufferLines('regular').forEach(line => {
       if (TIMESTAMP_REGEX.test(line)) {
         const { timestamp, message } = splitTimestampFromMessage(line);
-        if (FAILED_EXECUTION_REGEX.test(message)) this.colorFunction = color.error;
-        else if (EXCEPTION_LINE_REGEX.test(message)) this.colorFunction = color.error;
-        else this.colorFunction = color.info;
+        if (FAILED_EXECUTION_REGEX.test(message)) {
+          // Initial error message
+          this.colorFunction = color.error;
+          this.isReportingError = true;
+        } else if (this.isReportingError) {
+          // Error message details comes as the second message
+          this.colorFunction = color.error;
+          this.isReportingError = false;
+        } else this.colorFunction = color.info;
 
         this.printProjectLine(color.fade(timestamp), this.colorFunction(message));
       } else this.printProjectLine(this.colorFunction(line));
