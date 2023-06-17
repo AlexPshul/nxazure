@@ -29,7 +29,7 @@ const normalizeOptions = (tree: Tree, { name, project, template, language, authL
   const projectRoot = path.join(appsDir, names(project).fileName);
   if (!tree.exists(projectRoot)) throw new Error(`Project [${project} (${projectNames.fileName})] does not exist in the workspace.`);
 
-  const v4 = isV4();
+  const v4 = isV4(tree);
   if (v4 && template.endsWith('(V3 only)')) throw new Error(`Template [${template}] is not supported in V4.`);
 
   const cleanTemplateName = template.replace(' (V3 only)', '');
