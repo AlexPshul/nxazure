@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { CompilerOptions } from 'typescript';
-import { TS_CONFIG_BUILD_FILE } from '../../common';
+import { isV4, TS_CONFIG_BUILD_FILE } from '../../common';
 import { copyToTempFolder } from '../common';
 import { TemplateValues } from './consts';
 import { NewGeneratorSchema } from './schema';
@@ -29,9 +29,7 @@ const normalizeOptions = (tree: Tree, { name, project, template, language, authL
   const projectRoot = path.join(appsDir, names(project).fileName);
   if (!tree.exists(projectRoot)) throw new Error(`Project [${project} (${projectNames.fileName})] does not exist in the workspace.`);
 
-  const settings = readJson<{ Values: { AzureWebJobsFeatureFlags?: string } }>(tree, path.posix.join(projectRoot, 'local.settings.json'));
-
-  const v4 = !!settings.Values.AzureWebJobsFeatureFlags;
+  const v4 = isV4();
   if (v4 && template.endsWith('(V3 only)')) throw new Error(`Template [${template}] is not supported in V4.`);
 
   const cleanTemplateName = template.replace(' (V3 only)', '');

@@ -1,8 +1,8 @@
-import { Executor, readJsonFile } from '@nx/devkit';
+import { Executor } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { color } from '../../common';
+import { color, isV4 } from '../../common';
 import { build } from '../common';
 import { PublishExecutorSchema } from './schema';
 
@@ -12,9 +12,7 @@ const executor: Executor<PublishExecutorSchema> = async (options, context) => {
   if (success) {
     const { projectName, workspace, isVerbose, target } = context;
 
-    const cwd = workspace?.projects[projectName].root;
-    const localSettings = readJsonFile<{ Values: Record<string, string> }>(path.join(cwd, 'local.settings.json'));
-    if (localSettings.Values.AzureWebJobsFeatureFlags === 'EnableWorkerIndexing') {
+    if (isV4()) {
       console.log(color.warn('[V4 FUNCTION][ATTENTION]'));
       console.log(color.warn('Add the configuration "AzureWebJobsFeatureFlags": "EnableWorkerIndexing" to your deployment.'));
     }
@@ -24,6 +22,8 @@ const executor: Executor<PublishExecutorSchema> = async (options, context) => {
     if (isVerbose) {
       console.log(`Running ${target.executor} command: ${installCommand}.`);
     }
+
+    const cwd = workspace?.projects[projectName].root;
     execSync(installCommand, { stdio: 'inherit', cwd });
 
     const publishCommand = `func azure functionapp publish ${name}${additionalFlags ? ` ${additionalFlags}` : ''}`;

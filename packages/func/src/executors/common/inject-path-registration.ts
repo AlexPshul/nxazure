@@ -2,13 +2,10 @@ import { readJsonFile } from '@nx/devkit';
 import fs from 'fs';
 import { glob } from 'glob';
 import path from 'path';
-import { registrationFileName } from '../../common';
+import { isV4, registrationFileName } from '../../common';
 
 const getFilesForPathInjection = async (appRoot: string) => {
-  const localSettings = readJsonFile<{ Values: { AzureWebJobsFeatureFlags?: string } }>(path.join(appRoot, 'local.settings.json'));
-  const v4 = localSettings.Values.AzureWebJobsFeatureFlags === 'EnableWorkerIndexing';
-
-  if (v4) {
+  if (isV4()) {
     const { main: functionsPathPattern } = readJsonFile<{ main: string }>(path.join(appRoot, 'package.json'));
 
     const functionsPath = path.posix.join(appRoot, functionsPathPattern);
