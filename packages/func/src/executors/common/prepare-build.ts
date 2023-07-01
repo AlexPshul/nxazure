@@ -1,8 +1,14 @@
 import { ExecutorContext, readJsonFile, writeJsonFile } from '@nx/devkit';
 import { execSync } from 'child_process';
 import path from 'path';
-import { CompilerOptions } from 'typescript';
+import { CompilerOptions, ModuleKind } from 'typescript';
 import { TS_CONFIG_BASE_FILE, TS_CONFIG_BUILD_FILE } from '../../common';
+
+const moduleKindMap = new Map<string, ModuleKind>(Object.values(ModuleKind).map((v: ModuleKind) => [v.toString().toLowerCase(), v]));
+
+function parseModuleKind(volumeData: string): ModuleKind {
+  return moduleKindMap.get(volumeData) as ModuleKind;
+}
 
 export const prepareBuild = (context: ExecutorContext) => {
   const appRoot = context.workspace?.projects[context.projectName].root;
@@ -25,6 +31,8 @@ export const prepareBuild = (context: ExecutorContext) => {
 
   const outputPath = path.join(appRoot, config.compilerOptions.outDir);
 
+  const module = parseModuleKind(config.compilerOptions.module.toString());
+
   const options = {
     outputPath,
     projectName: context.projectName,
@@ -32,5 +40,5 @@ export const prepareBuild = (context: ExecutorContext) => {
     tsConfig: configPath,
   };
 
-  return { appRoot, options };
+  return { appRoot, options, module: ModuleKind[module] };
 };

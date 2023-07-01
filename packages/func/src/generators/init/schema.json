@@ -13,6 +13,12 @@
       },
       "x-prompt": "What is the name of your azure function app?"
     },
+    "esModule": {
+      "alias": "es",
+      "type": "boolean",
+      "description": "Create a es module project",
+      "default": false
+    },
     "strict": {
       "type": "boolean",
       "description": "Create a strict TypeScript project",

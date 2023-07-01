@@ -2,6 +2,7 @@ import { readJsonFile } from '@nx/devkit';
 import fs from 'fs';
 import { glob } from 'glob';
 import path from 'path';
+import { ModuleKind } from 'typescript';
 import { isV4, registrationFileName } from '../../common';
 
 const getFilesForPathInjection = async (appRoot: string) => {
@@ -26,7 +27,7 @@ const getFilesForPathInjection = async (appRoot: string) => {
   }
 };
 
-export const injectPathRegistration = async (outputPath: string, appRoot: string) => {
+export const injectPathRegistration = async (outputPath: string, appRoot: string, moduleKind: ModuleKind | string) => {
   const registerPathsFilePath = path.join(outputPath, appRoot, `${registrationFileName}.js`);
   const filesToInject = await getFilesForPathInjection(appRoot);
 
@@ -35,7 +36,8 @@ export const injectPathRegistration = async (outputPath: string, appRoot: string
       const relativePath = path.relative(path.dirname(filePath), registerPathsFilePath).replace(/\\/g, '/');
 
       const content = await fs.promises.readFile(filePath, 'utf-8');
-      const newJsFileContent = `require('${relativePath}');\n${content}`;
+      const newJsFileContent =
+        moduleKind === ModuleKind.CommonJS ? `require('${relativePath}');\n${content}` : `import '${relativePath}';\n${content}`;
       await fs.promises.writeFile(filePath, newJsFileContent);
     }),
   );

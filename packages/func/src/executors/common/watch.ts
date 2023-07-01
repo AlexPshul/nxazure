@@ -9,6 +9,7 @@ import {
   createWatchProgram,
   formatDiagnosticsWithColorAndContext,
   sys,
+  ModuleKind,
 } from 'typescript';
 import { color } from '../../common';
 import { getCopyPackageToAppTransformerFactory } from './get-copy-package-to-app-transformer-factory';
@@ -30,10 +31,11 @@ type ProgressContext = {
   projectName: string;
   appRoot: string;
   outputPath: string;
+  moduleKind: ModuleKind | string;
 };
 
 const reportProgress = async (
-  { appRoot, outputPath, projectName }: ProgressContext,
+  { appRoot, outputPath, projectName, moduleKind }: ProgressContext,
   diagnostic: Diagnostic,
   errors: number,
   onBuild?: () => void,
@@ -48,7 +50,7 @@ const reportProgress = async (
     default:
       if (errors > 0) console.log(color.error(`[${projectName}]`), formatDiagnosticsWithColorAndContext([diagnostic], formatHost));
       else {
-        await injectPathRegistration(outputPath, appRoot);
+        await injectPathRegistration(outputPath, appRoot, moduleKind);
         console.log(color.info(`[${projectName}]`), formatDiagnosticsWithColorAndContext([diagnostic], formatHost));
         onBuild?.();
       }
@@ -57,12 +59,13 @@ const reportProgress = async (
 };
 
 export const watch = async (context: ExecutorContext, onBuild?: () => void, onError?: () => void) => {
-  const { appRoot, options } = prepareBuild(context);
+  const { appRoot, options, module } = prepareBuild(context);
 
   const progressContext: ProgressContext = {
     projectName: context.projectName,
     appRoot,
     outputPath: options.outputPath,
+    moduleKind: module,
   };
 
   const config = readTsConfig(options.tsConfig);

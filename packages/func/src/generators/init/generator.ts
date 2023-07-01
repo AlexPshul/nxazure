@@ -29,13 +29,14 @@ import { InitGeneratorSchema } from './schema';
 type NormalizedOptions = {
   appRoot: string;
   appNames: ReturnType<typeof names>;
+  esModule: boolean;
   strict: boolean;
   v4: boolean;
 };
 
 const staticFilesToCopy = ['host.json', 'local.settings.json', '.funcignore'];
 
-const normalizeOptions = (tree: Tree, { name, strict, v4 }: InitGeneratorSchema): NormalizedOptions => {
+const normalizeOptions = (tree: Tree, { name, strict, v4, esModule }: InitGeneratorSchema): NormalizedOptions => {
   const appNames = names(name);
 
   const { appsDir } = getWorkspaceLayout(tree);
@@ -49,6 +50,7 @@ const normalizeOptions = (tree: Tree, { name, strict, v4 }: InitGeneratorSchema)
   return {
     appRoot,
     appNames,
+    esModule,
     strict,
     v4,
   };
@@ -137,15 +139,26 @@ const updateWorkspacePackageJson = (tree: Tree, copyFromFolder: string) => {
   );
 };
 
-const createTsConfigFiles = (tree: Tree, { appRoot, strict }: NormalizedOptions) => {
+const createTsConfigFiles = (tree: Tree, { appRoot, strict, esModule }: NormalizedOptions) => {
   const relativePathToRoot = offsetFromRoot(appRoot);
 
-  const compilerOptions = {
+  let compilerOptions: { [key: string]: unknown } = {
     module: 'commonjs',
     target: 'es6',
     sourceMap: true,
     strict,
   };
+
+  if (esModule) {
+    compilerOptions = {
+      allowSyntheticDefaultImports: true,
+      module: 'ESNext',
+      target: 'ES2022',
+      sourceMap: true,
+      moduleResolution: 'node',
+      strict,
+    };
+  }
 
   const workspaceTsConfig = { extends: `${relativePathToRoot}${TS_CONFIG_BASE_FILE}`, compilerOptions };
   tree.write(path.posix.join(appRoot, TS_CONFIG_WORKSPACE_FILE), JSON.stringify(workspaceTsConfig, null, 2));
@@ -165,15 +178,25 @@ const updateBaseTsConfig = (tree: Tree) => {
   });
 };
 
-const createProjectPackageJson = (tree: Tree, { appRoot, v4 }: NormalizedOptions, copyFromFolder: string) => {
+const createProjectPackageJson = (tree: Tree, { appRoot, v4, appNames: { name }, esModule }: NormalizedOptions, copyFromFolder: string) => {
   // This needs to be copied and dependencies + devDependencies removed
-  const sourcePackageJson = readJsonFile<{ dependencies: Record<string, string>; devDependencies: Record<string, string>; main: string }>(
-    path.posix.join(copyFromFolder, 'package.json'),
-  );
+  const sourcePackageJson = readJsonFile<{
+    dependencies: Record<string, string>;
+    devDependencies: Record<string, string>;
+    main: string;
+    type: string;
+    name: string;
+  }>(path.posix.join(copyFromFolder, 'package.json'));
 
   const azureFunctionsVersion = sourcePackageJson.dependencies['@azure/functions'];
   sourcePackageJson.dependencies = v4 ? { ['@azure/functions']: azureFunctionsVersion } : {};
   sourcePackageJson.devDependencies = {};
+
+  sourcePackageJson.name = name;
+
+  if (esModule) {
+    sourcePackageJson.type = 'module';
+  }
 
   if (v4) sourcePackageJson.main = `dist/${appRoot}/src/functions/*.js`;
 
@@ -187,12 +210,16 @@ const copyFilesFromTemp = (tree: Tree, { appRoot }: NormalizedOptions, tempFolde
   });
 };
 
-const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
+const createRegisterPathsFile = (tree: Tree, { appRoot, esModule }: NormalizedOptions) =>
   tree.write(
     path.posix.join(appRoot, `${registrationFileName}.ts`),
     `
     import { register } from 'tsconfig-paths';
-    import * as tsConfig from '../../${TS_CONFIG_BASE_FILE}';
+    ${
+      esModule
+        ? `import tsConfig from '../../${TS_CONFIG_BASE_FILE}' assert { type: 'json' }; `
+        : `import * as tsConfig from '../../${TS_CONFIG_BASE_FILE}';`
+    }
     import { CompilerOptions } from 'typescript';
 
     const compilerOptions = tsConfig.compilerOptions as unknown as CompilerOptions; // This is to avoid any problems with the typing system

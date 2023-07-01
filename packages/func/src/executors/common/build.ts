@@ -5,7 +5,7 @@ import { injectPathRegistration } from './inject-path-registration';
 import { prepareBuild } from './prepare-build';
 
 export const build = async (context: ExecutorContext) => {
-  const { appRoot, options } = prepareBuild(context);
+  const { appRoot, options, module } = prepareBuild(context);
 
   const { success } = compileTypeScript({
     ...options,
@@ -14,7 +14,7 @@ export const build = async (context: ExecutorContext) => {
     }),
   });
 
-  await injectPathRegistration(options.outputPath, appRoot);
+  await injectPathRegistration(options.outputPath, appRoot, module);
 
   return success;
 };
