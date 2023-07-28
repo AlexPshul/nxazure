@@ -32,7 +32,11 @@ export const getCopyPackageToAppTransformerFactory = (context: ExecutorContext) 
       if (isImportDeclaration(node)) {
         const cleanedModuleName = node.moduleSpecifier.getText().replace(/['"]/g, '');
         const moduleInOriginalPackageJson = findModule(originalPackageJson.dependencies, cleanedModuleName);
-        // If the original package.json has the dependency, copy it to the app package.json
+         // Create a dependencies section in the app package.json if it doesn't exist
+        if (!appPackageJson.dependencies) 
+          appPackageJson.dependencies = {};
+        
+       // If the original package.json has the dependency, copy it to the app package.json
         if (
           moduleInOriginalPackageJson &&
           appPackageJson.dependencies[moduleInOriginalPackageJson] !== originalPackageJson.dependencies[moduleInOriginalPackageJson]
