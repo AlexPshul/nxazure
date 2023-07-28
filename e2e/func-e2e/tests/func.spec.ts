@@ -2,6 +2,7 @@ import { ensureNxProject, readJson, runNxCommandAsync, uniq, updateFile } from '
 import { CompilerOptions } from 'typescript';
 
 describe('Project initialization and build', () => {
+  const TEST_TIMEOUT = 120000;
   // Setting up individual workspaces per
   // test can cause e2e runs to take a long time.
   // For this reason, we recommend each suite only
@@ -24,7 +25,7 @@ describe('Project initialization and build', () => {
     const buildResult = await runNxCommandAsync(`build ${project}`);
 
     expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
-  }, 120000);
+  }, TEST_TIMEOUT);
 
   it('should init & build a workspace with a functions app and a function', async () => {
     const project = uniq('func');
@@ -35,7 +36,7 @@ describe('Project initialization and build', () => {
     const buildResult = await runNxCommandAsync(`build ${project}`);
 
     expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
-  }, 120000);
+  }, TEST_TIMEOUT);
 
   it('should init & build a workspace with a js lib functions app and a function', async () => {
     const project = uniq('func');
@@ -68,7 +69,7 @@ describe('Project initialization and build', () => {
     const buildResult = await runNxCommandAsync(`build ${project}`);
 
     expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
-  }, 120000);
+  }, TEST_TIMEOUT);
 
   it('Use strict mode', async () => {
     const project = uniq('func');
@@ -79,7 +80,7 @@ describe('Project initialization and build', () => {
 
     expect(tsConfig.compilerOptions.strict).toBe(true);
     expect(tsBuildConfig.compilerOptions.strict).toBe(true);
-  }, 120000);
+  }, TEST_TIMEOUT);
 
   it('Use no strict mode', async () => {
     const project = uniq('func');
@@ -90,7 +91,7 @@ describe('Project initialization and build', () => {
 
     expect(tsConfig.compilerOptions.strict).toBe(false);
     expect(tsBuildConfig.compilerOptions.strict).toBe(false);
-  }, 120000);
+  }, TEST_TIMEOUT);
 
   it('should init & build and empty workspace with a functions app (V4)', async () => {
     const project = uniq('func');
@@ -98,7 +99,7 @@ describe('Project initialization and build', () => {
     const buildResult = await runNxCommandAsync(`build ${project}`);
 
     expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
-  }, 120000);
+  }, TEST_TIMEOUT);
 
   it('should init & build a workspace with a functions app and a function (V4)', async () => {
     const project = uniq('func');
@@ -109,7 +110,7 @@ describe('Project initialization and build', () => {
     const buildResult = await runNxCommandAsync(`build ${project}`);
 
     expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
-  }, 120000);
+  }, TEST_TIMEOUT);
 
   it('should init & build a workspace with a js lib functions app and a function (V4)', async () => {
     const project = uniq('func');
@@ -144,7 +145,7 @@ describe('Project initialization and build', () => {
     const buildResult = await runNxCommandAsync(`build ${project}`);
 
     expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
-  }, 120000);
+  }, TEST_TIMEOUT);
 
   it('Use strict mode (V4)', async () => {
     const project = uniq('func');
@@ -155,7 +156,7 @@ describe('Project initialization and build', () => {
 
     expect(tsConfig.compilerOptions.strict).toBe(true);
     expect(tsBuildConfig.compilerOptions.strict).toBe(true);
-  }, 120000);
+  }, TEST_TIMEOUT);
 
   it('Use no strict mode (V4)', async () => {
     const project = uniq('func');
@@ -166,5 +167,5 @@ describe('Project initialization and build', () => {
 
     expect(tsConfig.compilerOptions.strict).toBe(false);
     expect(tsBuildConfig.compilerOptions.strict).toBe(false);
-  }, 120000);
+  }, TEST_TIMEOUT);
 });

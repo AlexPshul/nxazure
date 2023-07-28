@@ -1,4 +1,4 @@
-import { Tree } from '@nx/devkit';
+import { Tree, names } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';
@@ -7,7 +7,8 @@ import path from 'path';
 const getEnvTempDir = () => process.env.RUNNER_TEMP || os.tmpdir(); // This supports not only local dev but also GitHub Actions
 
 export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
-  const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-${tempAppName}-`));
+  const tempName = names(tempAppName).fileName.split('/')
+  const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(),`func-${tempName.pop()}-`));
 
   try {
     execSync(`func init ${tempAppName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`, {
