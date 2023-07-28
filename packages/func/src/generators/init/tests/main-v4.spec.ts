@@ -12,8 +12,20 @@ jest.mock('@nx/devkit', () => {
   };
 });
 
-describe('Check files (v4)', () => {
-  const projectName = 'HelloWorld';
+describe.each([
+  {
+    name: 'HelloWorld',
+    path: 'apps/hello-world',
+    sublevelFromRoot: 2
+  },
+  {
+    name: 'core/HelloWorld',
+    path: 'apps/core/hello-world',
+    sublevelFromRoot: 3
+  }
+])
+('Check files (v4)', (testArgs: { name: string, path: string, sublevelFromRoot: number }) => {
+  const projectName = testArgs.name;
   let appTree: Tree;
   const options: InitGeneratorSchema = { name: projectName, strict: true, silent: true, v4: true };
 
@@ -24,7 +36,7 @@ describe('Check files (v4)', () => {
   }, 120000);
 
   it('Folder name', () => {
-    expect(appTree.exists('apps/hello-world')).toBeTruthy();
+    expect(appTree.exists(testArgs.path)).toBeTruthy();
   });
 
   it('Project config', () => {
@@ -59,11 +71,11 @@ describe('Check files (v4)', () => {
   });
 
   it('Workspace TS config file', () => {
-    const tsconfig = appTree.read('apps/hello-world/tsconfig.json');
+    const tsconfig = appTree.read(`${testArgs.path}/tsconfig.json`);
     expect(tsconfig).toBeDefined();
 
     const tsconfigObj = JSON.parse(tsconfig?.toString() || '{}');
-    expect(tsconfigObj).toHaveProperty('extends', '../../tsconfig.base.json');
+    expect(tsconfigObj).toHaveProperty('extends', `${'../'.repeat(testArgs.sublevelFromRoot)}tsconfig.base.json`);
     expect(tsconfigObj).toHaveProperty('compilerOptions.module', 'commonjs');
     expect(tsconfigObj).toHaveProperty('compilerOptions.target', 'es6');
     expect(tsconfigObj).toHaveProperty('compilerOptions.sourceMap', true);
@@ -71,7 +83,7 @@ describe('Check files (v4)', () => {
   });
 
   it('Build TS config file', () => {
-    const tsconfig = appTree.read('apps/hello-world/tsconfig.build.json');
+    const tsconfig = appTree.read(`${testArgs.path}/tsconfig.build.json`);
     expect(tsconfig).toBeDefined();
 
     const tsconfigObj = JSON.parse(tsconfig?.toString() || '{}');
@@ -93,24 +105,24 @@ describe('Check files (v4)', () => {
   });
 
   it('Project eslint config file', () => {
-    const eslintConfig = appTree.read('apps/hello-world/.eslintrc.json');
+    const eslintConfig = appTree.read(`${testArgs.path}/.eslintrc.json`);
     expect(eslintConfig).toBeDefined();
 
     const eslintConfigObj = JSON.parse(eslintConfig?.toString() || '{}');
-    expect(eslintConfigObj).toHaveProperty('extends', '../../.eslintrc.json');
-    expect(eslintConfigObj.overrides[0]).toHaveProperty('parserOptions.project', ['apps/hello-world/tsconfig.*?.json']);
+    expect(eslintConfigObj).toHaveProperty('extends', `${'../'.repeat(testArgs.sublevelFromRoot)}.eslintrc.json`);
+    expect(eslintConfigObj.overrides[0]).toHaveProperty('parserOptions.project', [`${testArgs.path}/tsconfig.*?.json`]);
   });
 
   it('Project package.json file', () => {
-    const packageJson = appTree.read('apps/hello-world/package.json');
+    const packageJson = appTree.read(`${testArgs.path}/package.json`);
     expect(packageJson).toBeDefined();
 
     const packageJsonObj = JSON.parse(packageJson?.toString() || '{}');
-    expect(packageJsonObj).toHaveProperty('main', 'dist/apps/hello-world/src/functions/*.js');
+    expect(packageJsonObj).toHaveProperty('main', `dist/${testArgs.path}/src/functions/*.js`);
   });
 
   it('Local settings file', () => {
-    const localSettings = appTree.read('apps/hello-world/local.settings.json');
+    const localSettings = appTree.read(`${testArgs.path}/local.settings.json`);
     expect(localSettings).toBeDefined();
 
     const localSettingsObj = JSON.parse(localSettings?.toString() || '{}');
@@ -118,8 +130,8 @@ describe('Check files (v4)', () => {
   });
 
   it('Auto generated files', () => {
-    expect(appTree.exists('apps/hello-world/host.json')).toBeTruthy();
-    expect(appTree.exists('apps/hello-world/.funcignore')).toBeTruthy();
-    expect(appTree.exists('apps/hello-world/_registerPaths.ts')).toBeTruthy();
+    expect(appTree.exists(`${testArgs.path}/host.json`)).toBeTruthy();
+    expect(appTree.exists(`${testArgs.path}/.funcignore`)).toBeTruthy();
+    expect(appTree.exists(`${testArgs.path}/_registerPaths.ts`)).toBeTruthy();
   });
 });
