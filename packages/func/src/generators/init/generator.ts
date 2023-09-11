@@ -10,6 +10,7 @@ import {
   readProjectConfiguration,
   Tree,
   updateJson,
+  updateProjectConfiguration,
 } from '@nx/devkit';
 import fs, { readFileSync } from 'fs';
 import path from 'path';
@@ -213,7 +214,7 @@ const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
     `,
   );
 
-const createEslintConfig = (tree: Tree, { appRoot }: NormalizedOptions) => {
+const configureEslint = (tree: Tree, { appRoot, appNames: { name } }: NormalizedOptions) => {
   if (!tree.exists('.eslintrc.json')) return;
 
   const relativePathToRoot = offsetFromRoot(appRoot);
@@ -243,6 +244,17 @@ const createEslintConfig = (tree: Tree, { appRoot }: NormalizedOptions) => {
   };
 
   tree.write(path.posix.join(appRoot, '.eslintrc.json'), JSON.stringify(projectEslintConfig, null, 2));
+
+  const projectConfig = readProjectConfiguration(tree, name);
+  projectConfig.targets.lint = {
+    executor: '@nx/linter:eslint',
+    options: {
+      lintFilePatterns: [`apps/${name}/**/*.ts`],
+    },
+    outputs: ['{options.outputFile}'],
+  };
+
+  updateProjectConfiguration(tree, name, projectConfig);
 };
 
 export default async function (tree: Tree, options: InitGeneratorSchema) {
@@ -261,7 +273,7 @@ export default async function (tree: Tree, options: InitGeneratorSchema) {
     createProjectPackageJson(tree, normalizedOptions, tempProjectRoot);
     copyFilesFromTemp(tree, normalizedOptions, tempProjectRoot, staticFilesToCopy);
     createRegisterPathsFile(tree, normalizedOptions);
-    createEslintConfig(tree, normalizedOptions);
+    configureEslint(tree, normalizedOptions);
 
     await formatFiles(tree);
     installPackagesTask(tree, true);
