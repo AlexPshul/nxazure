@@ -14,7 +14,7 @@ jest.mock('@nx/devkit', () => {
 
 describe('Check port increased value', () => {
   let appTree: Tree;
-  const baseOptions: InitGeneratorSchema = { name: 'HelloWorld', strict: true, silent: true, v4: false };
+  const baseOptions: InitGeneratorSchema = { name: 'HelloWorld', strict: true, silent: true, v4: false, tags: '' };
 
   beforeAll(() => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });

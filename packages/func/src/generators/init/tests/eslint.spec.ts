@@ -1,4 +1,4 @@
-import { Tree } from '@nx/devkit';
+import { Tree, readProjectConfiguration } from '@nx/devkit';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import generator from '../generator';
 import { InitGeneratorSchema } from '../schema';
@@ -15,7 +15,7 @@ jest.mock('@nx/devkit', () => {
 describe('Init with no eslint', () => {
   const projectName = 'HelloWorld';
   let appTree: Tree;
-  const baseOptions: InitGeneratorSchema = { name: projectName, strict: true, silent: true, v4: false };
+  const baseOptions: InitGeneratorSchema = { name: projectName, strict: true, silent: true, v4: false, tags: '' };
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
@@ -30,9 +30,13 @@ describe('Init with no eslint', () => {
 
   it('Global config exists -> app config generated', async () => {
     appTree.write('.eslintrc.json', JSON.stringify({}));
-    await generator(appTree, { ...baseOptions, name: baseOptions.name + '2' });
+    const name = baseOptions.name + '2';
+    await generator(appTree, { ...baseOptions, name });
 
     const eslintConfigExists = appTree.exists('apps/hello-world2/.eslintrc.json');
     expect(eslintConfigExists).toBeTruthy();
+
+    const projectConfiguration = readProjectConfiguration(appTree, name);
+    expect(projectConfiguration).toHaveProperty('targets.lint');
   });
 });

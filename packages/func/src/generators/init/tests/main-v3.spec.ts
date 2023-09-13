@@ -16,18 +16,17 @@ describe.each([
   {
     name: 'HelloWorld',
     path: 'apps/hello-world',
-    sublevelFromRoot: 2
+    sublevelFromRoot: 2,
   },
   {
     name: 'core/HelloWorld',
     path: 'apps/core/hello-world',
-    sublevelFromRoot: 3
-  }
-])
-('Check files (v3)', (testArgs: { name: string, path: string, sublevelFromRoot: number }) => {
+    sublevelFromRoot: 3,
+  },
+])('Check files (v3)', (testArgs: { name: string; path: string; sublevelFromRoot: number }) => {
   const projectName = testArgs.name;
   let appTree: Tree;
-  const options: InitGeneratorSchema = { name: projectName, strict: true, silent: true, v4: false };
+  const options: InitGeneratorSchema = { name: projectName, strict: true, silent: true, v4: false, tags: '' };
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });

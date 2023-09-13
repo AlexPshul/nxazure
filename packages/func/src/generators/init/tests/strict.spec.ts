@@ -14,7 +14,7 @@ jest.mock('@nx/devkit', () => {
 
 describe('Check strict option', () => {
   let appTree: Tree;
-  const partialOptions: Omit<InitGeneratorSchema, 'strict'> = { name: 'HelloWorld', silent: true, v4: false };
+  const partialOptions: Omit<InitGeneratorSchema, 'strict'> = { name: 'HelloWorld', silent: true, v4: false, tags: '' };
 
   beforeEach(() => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });

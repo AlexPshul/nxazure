@@ -53,7 +53,7 @@ describe('new generator (V4)', () => {
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
-    await initProjecteGenerator(appTree, { name: projectName, strict: true, silent: true, v4: true });
+    await initProjecteGenerator(appTree, { name: projectName, strict: true, silent: true, v4: true, tags: '' });
   }, 120000);
 
   it.each(supportedTemplates)('%s supported template function', async (template, name, fileName) => {

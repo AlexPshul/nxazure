@@ -53,7 +53,7 @@ const normalizeOptions = (tree: Tree, { name, strict, v4, tags }: InitGeneratorS
     appNames,
     strict,
     v4,
-    tags: tags?.split(',').map(s => s.trim()) || [],
+    tags: tags.split(',').map(s => s.trim()) || [],
   };
 };
 
