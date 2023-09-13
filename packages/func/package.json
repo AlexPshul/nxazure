@@ -13,5 +13,13 @@
   },
   "nx-migrations": {
     "migrations": "./migrations.json"
+  },
+  "dependencies": {
+    "@nx/devkit": "16.8.1",
+    "@nx/workspace": "16.8.1",
+    "typescript": "5.1.6",
+    "glob": "^10.2.2",
+    "tree-kill": "^1.2.2",
+    "tslib": "^2.3.0"
   }
 }
