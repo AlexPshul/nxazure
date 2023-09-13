@@ -3,4 +3,5 @@ export interface InitGeneratorSchema {
   strict: boolean;
   silent: boolean;
   v4: boolean;
+  tags: string;
 }

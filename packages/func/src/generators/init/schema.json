@@ -27,6 +27,10 @@
       "type": "boolean",
       "description": "Use the preview V4 model of Azure Functions. (WIP, 'new' generator is not supported. Init functions manually)",
       "default": false
+    },
+    "tags": {
+      "type": "string",
+      "description": "Add tags to the library (used for linting)."
     }
   },
   "required": ["name"]

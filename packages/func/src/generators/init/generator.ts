@@ -32,11 +32,12 @@ type NormalizedOptions = {
   appNames: ReturnType<typeof names>;
   strict: boolean;
   v4: boolean;
+  tags: string[];
 };
 
 const staticFilesToCopy = ['host.json', 'local.settings.json', '.funcignore'];
 
-const normalizeOptions = (tree: Tree, { name, strict, v4 }: InitGeneratorSchema): NormalizedOptions => {
+const normalizeOptions = (tree: Tree, { name, strict, v4, tags }: InitGeneratorSchema): NormalizedOptions => {
   const appNames = names(name);
 
   const { appsDir } = getWorkspaceLayout(tree);
@@ -52,10 +53,11 @@ const normalizeOptions = (tree: Tree, { name, strict, v4 }: InitGeneratorSchema)
     appNames,
     strict,
     v4,
+    tags: tags?.split(',').map(s => s.trim()) || [],
   };
 };
 
-const createProjectConfigurationFile = (tree: Tree, { appRoot, appNames: { name } }: NormalizedOptions) => {
+const createProjectConfigurationFile = (tree: Tree, { appRoot, appNames: { name }, tags }: NormalizedOptions) => {
   const maxPort = Array.from(getProjects(tree).values())
     .filter(project => !!project.name)
     .map(project => readProjectConfiguration(tree, project.name))
@@ -80,6 +82,7 @@ const createProjectConfigurationFile = (tree: Tree, { appRoot, appNames: { name 
         executor: `${GLOBAL_NAME}/${FUNC_PACKAGE_NAME}:publish`,
       },
     },
+    tags,
   });
 };
 
