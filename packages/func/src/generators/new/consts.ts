@@ -1,6 +1,5 @@
 export const TemplateValues = [
   'Azure Blob Storage trigger',
-  'Azure Cosmos DB trigger',
   'Durable Functions activity',
   'Durable Functions entity',
   'Durable Functions Entity HTTP starter',

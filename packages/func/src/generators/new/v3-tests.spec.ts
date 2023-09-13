@@ -15,7 +15,6 @@ jest.mock('@nx/devkit', () => {
 
 const templates = [
   ['Azure Blob Storage trigger', 'Blob', 'blob'],
-  ['Azure Cosmos DB trigger', 'CosmosDb', 'cosmos-db'],
   ['Durable Functions activity (V3 only)', 'DurableFunctionsActivity', 'durable-functions-activity'],
   ['Durable Functions entity', 'DurableFunctionsEntity', 'durable-functions-entity'],
   ['Durable Functions Entity HTTP starter (V3 only)', 'DurableFunctionsEntityHttpStart', 'durable-functions-entity-http-start'],
