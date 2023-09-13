@@ -1,3 +1,4 @@
+import { NxJsonConfiguration } from '@nx/devkit';
 import { ensureNxProject, readJson, runCommand, runNxCommandAsync, uniq, updateFile } from '@nx/plugin/testing';
 import { CompilerOptions } from 'typescript';
 
@@ -11,6 +12,16 @@ describe('Project initialization and build', () => {
   // are not dependant on one another.
   beforeAll(() => {
     ensureNxProject('@nxazure/func', 'dist/packages/func');
+
+    const nxConfig = readJson<NxJsonConfiguration>('nx.json');
+    nxConfig.workspaceLayout = {
+      projectNameAndRootFormat: 'derived',
+      appsDir: 'apps',
+      libsDir: 'libs',
+    };
+
+    updateFile('nx.json', JSON.stringify(nxConfig, null, 2));
+
     runCommand('npm i @types/node@latest', {});
   });
 
