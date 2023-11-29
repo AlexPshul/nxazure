@@ -1,21 +1,18 @@
-import { getWorkspaceLayout, names, readJson, Tree, updateJson } from '@nx/devkit';
+import { getWorkspaceLayout, names, Tree } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { CompilerOptions } from 'typescript';
-import { isV4, TS_CONFIG_BUILD_FILE } from '../../common';
 import { copyToTempFolder } from '../common';
 import { TemplateValues } from './consts';
 import { NewGeneratorSchema } from './schema';
 
-const V4_FUNCTIONS_FOLDER = 'src/functions';
+const FUNCTIONS_FOLDER = 'src/functions';
 
 type Template = (typeof TemplateValues)[number];
 
 type NormalizedOptions = Pick<NewGeneratorSchema, 'language' | 'authLevel' | 'silent' | 'template'> & {
   projectRoot: string;
   funcNames: ReturnType<typeof names>;
-  v4: boolean;
   template: Template;
 };
 
@@ -29,19 +26,14 @@ const normalizeOptions = (tree: Tree, { name, project, template, language, authL
   const projectRoot = path.join(appsDir, names(project).fileName);
   if (!tree.exists(projectRoot)) throw new Error(`Project [${project} (${projectNames.fileName})] does not exist in the workspace.`);
 
-  const v4 = isV4(tree);
-  if (v4 && template.endsWith('(V3 only)')) throw new Error(`Template [${template}] is not supported in V4.`);
-
-  const cleanTemplateName = template.replace(' (V3 only)', '');
-  if (!isTemplateValid(cleanTemplateName)) throw new Error(`Template [${template}] is not supported.`);
+  if (!isTemplateValid(template)) throw new Error(`Template [${template}] is not supported.`);
 
   return {
     projectRoot,
     funcNames,
-    template: cleanTemplateName as NormalizedOptions['template'],
+    template: template as NormalizedOptions['template'],
     language,
-    v4,
-    authLevel: template === 'HttpTrigger' ? authLevel : undefined,
+    authLevel: template === 'HTTP trigger' ? authLevel : undefined,
     silent,
   };
 };
@@ -58,28 +50,13 @@ const copyFiles = (tree: Tree, copyFromRootPath: string, copyToRootPath: string,
     .forEach(({ destination, content }) => tree.write(destination, content));
 };
 
-const fixFunctionsJson = (tree: Tree, { projectRoot, funcNames }: NormalizedOptions) => {
-  const funcRoot = path.posix.join(projectRoot, funcNames.fileName);
-
-  const {
-    compilerOptions: { outDir },
-  } = readJson<{ compilerOptions: CompilerOptions }>(tree, path.join(projectRoot, TS_CONFIG_BUILD_FILE));
-  const indexJsRelativePath = path.posix.join('..', outDir, funcRoot, 'index.js');
-  const posixIndexJsRelativePath = path.posix.join(...indexJsRelativePath.split(path.sep));
-
-  updateJson(tree, path.posix.join(funcRoot, 'function.json'), functionJsonObject => {
-    functionJsonObject['scriptFile'] = posixIndexJsRelativePath;
-    return functionJsonObject;
-  });
-};
-
 export default async function (tree: Tree, options: NewGeneratorSchema) {
   const normalizedOptions = normalizeOptions(tree, options);
 
   const originalConsoleLog = console.log;
   if (options.silent) console.log = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
 
-  const tempFolder = copyToTempFolder(tree, normalizedOptions.projectRoot, normalizedOptions.v4);
+  const tempFolder = copyToTempFolder(tree, normalizedOptions.projectRoot);
 
   try {
     let funcNewCommand = `func new -n ${normalizedOptions.funcNames.fileName} -t "${normalizedOptions.template}"`;
@@ -87,10 +64,7 @@ export default async function (tree: Tree, options: NewGeneratorSchema) {
 
     execSync(funcNewCommand, { cwd: tempFolder, stdio: 'ignore' });
 
-    const subFolder = normalizedOptions.v4 ? V4_FUNCTIONS_FOLDER : normalizedOptions.funcNames.fileName;
-    copyFiles(tree, tempFolder, normalizedOptions.projectRoot, subFolder);
-
-    if (!normalizedOptions.v4) fixFunctionsJson(tree, normalizedOptions);
+    copyFiles(tree, tempFolder, normalizedOptions.projectRoot, FUNCTIONS_FOLDER);
   } catch (e) {
     console.error(`Could not create ${normalizedOptions.funcNames.fileName} function with template ${normalizedOptions.template}.`, e);
     throw e;

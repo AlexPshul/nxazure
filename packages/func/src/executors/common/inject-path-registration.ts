@@ -2,28 +2,15 @@ import { readJsonFile } from '@nx/devkit';
 import fs from 'fs';
 import { glob } from 'glob';
 import path from 'path';
-import { isV4, registrationFileName } from '../../common';
+import { registrationFileName } from '../../common';
 
 const getFilesForPathInjection = async (appRoot: string) => {
-  if (isV4()) {
-    const { main: functionsPathPattern } = readJsonFile<{ main: string }>(path.join(appRoot, 'package.json'));
+  const { main: functionsPathPattern } = readJsonFile<{ main: string }>(path.join(appRoot, 'package.json'));
 
-    const functionsPath = path.posix.join(appRoot, functionsPathPattern);
-    const functions = await glob(functionsPath);
+  const functionsPath = path.posix.join(appRoot, functionsPathPattern);
+  const functions = await glob(functionsPath);
 
-    return functions;
-  } else {
-    const functionJsonFiles = await glob('**/function.json', { cwd: appRoot, ignore: ['**/node_modules/**'] });
-
-    return await Promise.all(
-      functionJsonFiles
-        .map(file => path.join(appRoot, file))
-        .map(async file => {
-          const { scriptFile } = await readJsonFile<{ scriptFile: string }>(file);
-          return path.join(path.dirname(file), scriptFile);
-        }),
-    );
-  }
+  return functions;
 };
 
 export const injectPathRegistration = async (outputPath: string, appRoot: string) => {

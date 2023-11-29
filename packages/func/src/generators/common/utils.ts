@@ -6,12 +6,12 @@ import path from 'path';
 
 const getEnvTempDir = () => process.env.RUNNER_TEMP || os.tmpdir(); // This supports not only local dev but also GitHub Actions
 
-export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
-  const tempName = names(tempAppName).fileName.split('/')
-  const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(),`func-${tempName.pop()}-`));
+export const createTempFolderWithInit = (tempAppName: string) => {
+  const tempName = names(tempAppName).fileName.split('/');
+  const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-${tempName.pop()}-`));
 
   try {
-    execSync(`func init ${tempAppName} --worker-runtime node --language typescript ${v4 ? '--model V4' : ''}`, {
+    execSync(`func init ${tempAppName} --worker-runtime node --language typescript`, {
       cwd: tempFolder,
       stdio: 'ignore',
     });
@@ -23,7 +23,7 @@ export const createTempFolderWithInit = (tempAppName: string, v4: boolean) => {
   return { tempFolder, tempProjectRoot: path.posix.join(tempFolder, tempAppName) };
 };
 
-export const copyToTempFolder = (tree: Tree, projectRootPath: string, v4: boolean) => {
+export const copyToTempFolder = (tree: Tree, projectRootPath: string) => {
   const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-copy-`));
 
   tree
@@ -33,7 +33,7 @@ export const copyToTempFolder = (tree: Tree, projectRootPath: string, v4: boolea
     .map(({ filename, fullPath }) => ({ filename, content: tree.read(fullPath).toString() }))
     .forEach(({ filename, content }) => fs.writeFileSync(path.posix.join(tempFolder, filename), content));
 
-  if (v4) fs.mkdirSync(path.posix.join(tempFolder, 'src/functions'), { recursive: true });
+  fs.mkdirSync(path.posix.join(tempFolder, 'src/functions'), { recursive: true });
 
   return tempFolder;
 };

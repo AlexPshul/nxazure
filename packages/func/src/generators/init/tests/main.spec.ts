@@ -12,6 +12,8 @@ jest.mock('@nx/devkit', () => {
   };
 });
 
+const TEST_TIMEOUT = 120000;
+
 describe.each([
   {
     name: 'HelloWorld',
@@ -23,16 +25,16 @@ describe.each([
     path: 'apps/core/hello-world',
     sublevelFromRoot: 3,
   },
-])('Check files (v3)', (testArgs: { name: string; path: string; sublevelFromRoot: number }) => {
+])('Check files', (testArgs: { name: string; path: string; sublevelFromRoot: number }) => {
   const projectName = testArgs.name;
   let appTree: Tree;
-  const options: InitGeneratorSchema = { name: projectName, strict: true, silent: true, v4: false, tags: '' };
+  const options: InitGeneratorSchema = { name: projectName, strict: true, silent: true, tags: '' };
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
     appTree.write('.eslintrc.json', JSON.stringify({}));
     await generator(appTree, options);
-  });
+  }, TEST_TIMEOUT);
 
   it('Folder name', () => {
     expect(appTree.exists(testArgs.path)).toBeTruthy();
@@ -63,8 +65,8 @@ describe.each([
 
     const packageJsonObj = JSON.parse(packageJson?.toString() || '{}');
     expect(packageJsonObj).toHaveProperty('dependencies.tsconfig-paths');
+    expect(packageJsonObj).toHaveProperty('dependencies.@azure/functions');
     expect(packageJsonObj).toHaveProperty('devDependencies.typescript');
-    expect(packageJsonObj).toHaveProperty('devDependencies.@azure/functions');
     expect(packageJsonObj).toHaveProperty('devDependencies.azure-functions-core-tools');
     expect(packageJsonObj).toHaveProperty('devDependencies.@types/node');
   });
@@ -112,10 +114,24 @@ describe.each([
     expect(eslintConfigObj.overrides[0]).toHaveProperty('parserOptions.project', [`${testArgs.path}/tsconfig.*?.json`]);
   });
 
+  it('Project package.json file', () => {
+    const packageJson = appTree.read(`${testArgs.path}/package.json`);
+    expect(packageJson).toBeDefined();
+
+    const packageJsonObj = JSON.parse(packageJson?.toString() || '{}');
+    expect(packageJsonObj).toHaveProperty('main', `dist/${testArgs.path}/src/functions/*.js`);
+  });
+
+  it('Local settings file', () => {
+    const localSettings = appTree.read(`${testArgs.path}/local.settings.json`);
+    expect(localSettings).toBeDefined();
+
+    const localSettingsObj = JSON.parse(localSettings?.toString() || '{}');
+    expect(localSettingsObj).toHaveProperty('Values.AzureWebJobsFeatureFlags', 'EnableWorkerIndexing');
+  });
+
   it('Auto generated files', () => {
-    expect(appTree.exists(`${testArgs.path}/package.json`)).toBeTruthy();
     expect(appTree.exists(`${testArgs.path}/host.json`)).toBeTruthy();
-    expect(appTree.exists(`${testArgs.path}/local.settings.json`)).toBeTruthy();
     expect(appTree.exists(`${testArgs.path}/.funcignore`)).toBeTruthy();
     expect(appTree.exists(`${testArgs.path}/_registerPaths.ts`)).toBeTruthy();
   });

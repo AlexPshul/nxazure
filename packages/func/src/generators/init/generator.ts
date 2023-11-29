@@ -31,13 +31,12 @@ type NormalizedOptions = {
   appRoot: string;
   appNames: ReturnType<typeof names>;
   strict: boolean;
-  v4: boolean;
   tags: string[];
 };
 
 const staticFilesToCopy = ['host.json', 'local.settings.json', '.funcignore'];
 
-const normalizeOptions = (tree: Tree, { name, strict, v4, tags }: InitGeneratorSchema): NormalizedOptions => {
+const normalizeOptions = (tree: Tree, { name, strict, tags }: InitGeneratorSchema): NormalizedOptions => {
   const appNames = names(name);
 
   const { appsDir } = getWorkspaceLayout(tree);
@@ -46,13 +45,10 @@ const normalizeOptions = (tree: Tree, { name, strict, v4, tags }: InitGeneratorS
   if (tree.exists(appRoot) && tree.children(appRoot).length > 0)
     throw new Error(`Project [${name} (${appNames.fileName})] already exists in the workspace.`);
 
-  if (v4) console.log(color.warn('The V4 model is currently in preview. Use with caution.'));
-
   return {
     appRoot,
     appNames,
     strict,
-    v4,
     tags: tags.split(',').map(s => s.trim()) || [],
   };
 };
@@ -118,26 +114,16 @@ const updateWorkspacePackageJson = (tree: Tree, copyFromFolder: string) => {
 
     json.devDependencies = json.devDependencies || {};
 
-    // In most new instances, Node 18 is used. V3 model is using 16.x, which fails on build in that case.
-    // After V3 is deprecated, this can be removed.
-    sourcePackageJson.devDependencies['@types/node'] = '18.x';
-
     Object.keys(sourcePackageJson.devDependencies).forEach(key => {
       json.devDependencies[key] = json.devDependencies[key] || sourcePackageJson.devDependencies[key];
     });
-
-    // For V4, the @azure/functions package is moved from devDependencies to dependencies
-    if (sourceDependencies['@azure/functions'] && json.devDependencies['@azure/functions']) {
-      console.log(color.warn('ATTENTION'), 'Upgrading to V4 model requires you to upgrade ALL your existing functions');
-      delete json.devDependencies['@azure/functions'];
-    }
 
     return json;
   });
 
   console.log(
     color.warn('ATTENTION'),
-    'Some dependencies might not work well together. If something is not working, try to update @types/node, typescript or @azure/functions to the latest (preview for V4) versions.',
+    'Some dependencies might not work well together. If something is not working, try to update @types/node, typescript or @azure/functions to the latest versions.',
   );
 };
 
@@ -169,17 +155,16 @@ const updateBaseTsConfig = (tree: Tree) => {
   });
 };
 
-const createProjectPackageJson = (tree: Tree, { appRoot, v4 }: NormalizedOptions, copyFromFolder: string) => {
+const createProjectPackageJson = (tree: Tree, { appRoot }: NormalizedOptions, copyFromFolder: string) => {
   // This needs to be copied and dependencies + devDependencies removed
   const sourcePackageJson = readJsonFile<{ dependencies: Record<string, string>; devDependencies: Record<string, string>; main: string }>(
     path.posix.join(copyFromFolder, 'package.json'),
   );
 
   const azureFunctionsVersion = sourcePackageJson.dependencies['@azure/functions'];
-  sourcePackageJson.dependencies = v4 ? { ['@azure/functions']: azureFunctionsVersion } : {};
+  sourcePackageJson.dependencies = { ['@azure/functions']: azureFunctionsVersion };
   sourcePackageJson.devDependencies = {};
-
-  if (v4) sourcePackageJson.main = `dist/${appRoot}/src/functions/*.js`;
+  sourcePackageJson.main = `dist/${appRoot}/src/functions/*.js`;
 
   tree.write(path.posix.join(appRoot, 'package.json'), JSON.stringify(sourcePackageJson, null, 2));
 };
@@ -265,7 +250,7 @@ export default async function (tree: Tree, options: InitGeneratorSchema) {
   if (options.silent) console.log = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
 
   const normalizedOptions = normalizeOptions(tree, options);
-  const { tempFolder, tempProjectRoot } = createTempFolderWithInit(normalizedOptions.appNames.fileName, normalizedOptions.v4);
+  const { tempFolder, tempProjectRoot } = createTempFolderWithInit(normalizedOptions.appNames.fileName);
 
   try {
     createProjectConfigurationFile(tree, normalizedOptions);

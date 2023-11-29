@@ -12,35 +12,45 @@ jest.mock('@nx/devkit', () => {
   };
 });
 
+const TEST_TIMEOUT = 120000;
+
 describe('Check strict option', () => {
   let appTree: Tree;
-  const partialOptions: Omit<InitGeneratorSchema, 'strict'> = { name: 'HelloWorld', silent: true, v4: false, tags: '' };
+  const partialOptions: Omit<InitGeneratorSchema, 'strict'> = { name: 'HelloWorld', silent: true, tags: '' };
 
   beforeEach(() => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
-  });
+  }, TEST_TIMEOUT);
 
-  it('Strict option is true', async () => {
-    await generator(appTree, { ...partialOptions, strict: true });
-    const workspaceTsConfig = appTree.read('apps/hello-world/tsconfig.json');
-    const buildTsConfig = appTree.read('apps/hello-world/tsconfig.build.json');
+  it(
+    'Strict option is true',
+    async () => {
+      await generator(appTree, { ...partialOptions, strict: true });
+      const workspaceTsConfig = appTree.read('apps/hello-world/tsconfig.json');
+      const buildTsConfig = appTree.read('apps/hello-world/tsconfig.build.json');
 
-    const workspaceTsConfigObj = JSON.parse(workspaceTsConfig?.toString() || '{}');
-    const buildTsConfigObj = JSON.parse(buildTsConfig?.toString() || '{}');
+      const workspaceTsConfigObj = JSON.parse(workspaceTsConfig?.toString() || '{}');
+      const buildTsConfigObj = JSON.parse(buildTsConfig?.toString() || '{}');
 
-    expect(workspaceTsConfigObj).toHaveProperty('compilerOptions.strict', true);
-    expect(buildTsConfigObj).toHaveProperty('compilerOptions.strict', true);
-  });
+      expect(workspaceTsConfigObj).toHaveProperty('compilerOptions.strict', true);
+      expect(buildTsConfigObj).toHaveProperty('compilerOptions.strict', true);
+    },
+    TEST_TIMEOUT,
+  );
 
-  it('Strict option is false', async () => {
-    await generator(appTree, { ...partialOptions, strict: false });
-    const workspaceTsConfig = appTree.read('apps/hello-world/tsconfig.json');
-    const buildTsConfig = appTree.read('apps/hello-world/tsconfig.build.json');
+  it(
+    'Strict option is false',
+    async () => {
+      await generator(appTree, { ...partialOptions, strict: false });
+      const workspaceTsConfig = appTree.read('apps/hello-world/tsconfig.json');
+      const buildTsConfig = appTree.read('apps/hello-world/tsconfig.build.json');
 
-    const workspaceTsConfigObj = JSON.parse(workspaceTsConfig?.toString() || '{}');
-    const buildTsConfigObj = JSON.parse(buildTsConfig?.toString() || '{}');
+      const workspaceTsConfigObj = JSON.parse(workspaceTsConfig?.toString() || '{}');
+      const buildTsConfigObj = JSON.parse(buildTsConfig?.toString() || '{}');
 
-    expect(workspaceTsConfigObj).toHaveProperty('compilerOptions.strict', false);
-    expect(buildTsConfigObj).toHaveProperty('compilerOptions.strict', false);
-  });
+      expect(workspaceTsConfigObj).toHaveProperty('compilerOptions.strict', false);
+      expect(buildTsConfigObj).toHaveProperty('compilerOptions.strict', false);
+    },
+    TEST_TIMEOUT,
+  );
 });
