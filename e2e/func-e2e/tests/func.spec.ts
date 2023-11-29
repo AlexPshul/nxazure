@@ -15,7 +15,6 @@ describe('Project initialization and build', () => {
 
     const nxConfig = readJson<NxJsonConfiguration>('nx.json');
     nxConfig.workspaceLayout = {
-      projectNameAndRootFormat: 'derived',
       appsDir: 'apps',
       libsDir: 'libs',
     };
