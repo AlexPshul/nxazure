@@ -13,12 +13,10 @@ export const prepareBuild = (context: ExecutorContext) => {
   const baseConfigPath = path.join(context.cwd, TS_CONFIG_BASE_FILE);
   const baseConfig = readJsonFile<{ compilerOptions: CompilerOptions }>(baseConfigPath);
 
-  config.compilerOptions.paths = !baseConfig.compilerOptions.paths
-    ? {}
-    : Object.keys(baseConfig.compilerOptions.paths).reduce((acc, key) => {
-        acc[key] = baseConfig.compilerOptions.paths[key].map(path => `../../${path}`);
-        return acc;
-      }, {} as Record<string, string[]>);
+  config.compilerOptions.paths = Object.keys(baseConfig.compilerOptions.paths ?? {}).reduce((acc, key) => {
+    acc[key] = baseConfig.compilerOptions.paths[key].map(path => `../../${path}`);
+    return acc;
+  }, config.compilerOptions.paths ?? {});
 
   writeJsonFile(configPath, config);
   execSync(`npx prettier ${configPath} -w`);
