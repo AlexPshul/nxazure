@@ -1,0 +1,9 @@
+{
+  "generators": {
+    "update-eslint-confnig": {
+      "version": "1.1.1",
+      "description": "Add ignore pattens for eslint config",
+      "implementation": "./src/migrations/update-1-1-1/update-eslint-config"
+    }
+  }
+}
