@@ -210,7 +210,7 @@ const configureEslint = (tree: Tree, { appRoot, appNames: { name } }: Normalized
 
   const projectEslintConfig = {
     extends: `${relativePathToRoot}.eslintrc.json`,
-    ignorePatterns: ['!**/*'],
+    ignorePatterns: ['!**/*', 'dist', 'node_modules', '_registerPaths.ts'],
     rules: {},
     overrides: [
       {
