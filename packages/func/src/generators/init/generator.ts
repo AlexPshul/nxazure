@@ -181,7 +181,7 @@ const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
     path.posix.join(appRoot, `${registrationFileName}.ts`),
     `
     import { register } from 'tsconfig-paths';
-    import * as tsConfig from '../../${TS_CONFIG_BASE_FILE}';
+    import * as tsConfig from '../../${TS_CONFIG_BASE_FILE}'; // eslint-disable-line @nx/enforce-module-boundaries
     import { CompilerOptions } from 'typescript';
 
     const compilerOptions = tsConfig.compilerOptions as unknown as CompilerOptions; // This is to avoid any problems with the typing system
@@ -210,7 +210,7 @@ const configureEslint = (tree: Tree, { appRoot, appNames: { name } }: Normalized
 
   const projectEslintConfig = {
     extends: `${relativePathToRoot}.eslintrc.json`,
-    ignorePatterns: ['!**/*', 'dist', 'node_modules', '_registerPaths.ts'],
+    ignorePatterns: ['!**/*', 'dist', 'node_modules'],
     rules: {},
     overrides: [
       {
