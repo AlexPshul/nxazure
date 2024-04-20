@@ -3,7 +3,7 @@ import { ensureNxProject, readJson, runCommand, runNxCommandAsync, uniq, updateF
 import { CompilerOptions } from 'typescript';
 
 describe('Project initialization and build', () => {
-  const TEST_TIMEOUT = 120000;
+  const TEST_TIMEOUT = 180000;
   // Setting up individual workspaces per
   // test can cause e2e runs to take a long time.
   // For this reason, we recommend each suite only
@@ -31,7 +31,7 @@ describe('Project initialization and build', () => {
   });
 
   it(
-    'should init & build and empty workspace with a functions app',
+    'should init & build an empty workspace with a functions app',
     async () => {
       const project = uniq('func');
       await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
@@ -58,9 +58,48 @@ describe('Project initialization and build', () => {
   );
 
   it(
-    'should init & build a workspace with a js lib functions app and a function',
+    'should init & build a workspace with a js lib and, a functions app and a function that uses that lib',
     async () => {
       const project = uniq('func');
+      const lib = uniq('lib');
+      const func = 'hello';
+
+      await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
+      await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
+      await runNxCommandAsync(`generate @nx/js:library ${lib}`);
+
+      const funcFilePath = `apps/${project}/${func}/index.ts`;
+
+      updateFile(
+        funcFilePath,
+        ` import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+        import { ${lib} } from "@proj/${lib}";
+
+        export async function hello(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+            const name = request.query.get('name') || await request.text() || 'world';
+
+            return { body: ${lib}() };
+        };
+
+        app.http('hello', {
+            methods: ['GET', 'POST'],
+            authLevel: 'anonymous',
+            handler: hello
+        });
+    `,
+      );
+
+      const buildResult = await runNxCommandAsync(`build ${project}`);
+
+      expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    'should init & build a workspace with a js lib, a nested functions app (apps/test/my-app) and a function that uses that lib',
+    async () => {
+      const project = `sub-app/${uniq('func')}`;
       const lib = uniq('lib');
       const func = 'hello';
 

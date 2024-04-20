@@ -176,12 +176,13 @@ const copyFilesFromTemp = (tree: Tree, { appRoot }: NormalizedOptions, tempFolde
   });
 };
 
-const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
+const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) => {
+  const relativePathToRoot = offsetFromRoot(appRoot);
   tree.write(
     path.posix.join(appRoot, `${registrationFileName}.ts`),
     `
     import { register } from 'tsconfig-paths';
-    import * as tsConfig from '../../${TS_CONFIG_BASE_FILE}'; // eslint-disable-line @nx/enforce-module-boundaries
+    import * as tsConfig from '${relativePathToRoot}${TS_CONFIG_BASE_FILE}'; // eslint-disable-line @nx/enforce-module-boundaries
     import { CompilerOptions } from 'typescript';
 
     const compilerOptions = tsConfig.compilerOptions as unknown as CompilerOptions; // This is to avoid any problems with the typing system
@@ -201,6 +202,7 @@ const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) =>
     }
     `,
   );
+};
 
 const configureEslint = (tree: Tree, { appRoot, appNames: { name } }: NormalizedOptions) => {
   if (!tree.exists('.eslintrc.json')) return;
