@@ -10,6 +10,13 @@ This plugin allows you to initialize, create, build, run and publish Azure Funct
 </p>
 <hr>
 
+## Table of Contents
+1. [Quick Start](#quick-start)
+2. [Features](#features)
+3. [Known possible issues](#known-possible-issues)
+4. [Publish to Azure](#publish-to-azure)
+5. [Limitations](#limitations)
+
 ## Quick Start
 
 1. Make sure your environment is set as described in the [Azure Functions docs](https://learn.microsoft.com/en-us/azure/azure-functions/create-first-function-vs-code-typescript#configure-your-environment).
@@ -46,13 +53,6 @@ nx start my-new-app
 
 <br/>
 
-## Known possible issues
-
-1. If after creation the build is failing, try updating `@types/node` and/or `typescript` versions.
-2. To be able to publish a function to your Azure account, an [az login](https://learn.microsoft.com/en-us/cli/azure/authenticate-azure-cli) is required first.
-
-<br/>
-
 ## Features
 
 1. Support for TS Config paths (e.g., `import { tool } from '@my-org/my-lib'`)
@@ -62,6 +62,34 @@ nx start my-new-app
 5. Publish the function app straight to your Azure account (az login is required)
 
 <br/>
+
+## Known possible issues
+
+1. If after creation the build is failing, try updating `@types/node` and/or `typescript` versions.
+2. To be able to publish a function to your Azure account, an [az login](https://learn.microsoft.com/en-us/cli/azure/authenticate-azure-cli) is required first.
+
+<br/>
+
+## Publish to Azure
+
+1. Sign in to Azure
+```bash
+az login
+```
+
+2. Make sure you select the correct subscription
+```bash
+az account set --subscription "<subscription ID or name>"
+```
+
+You can learn more about it on [Microsoft Learn](https://learn.microsoft.com/en-us/cli/azure/authenticate-azure-cli).
+
+3. Use the name of your local NX app and the name of your existing function app on Azure to run the publish command:
+```bash
+nx publish <local-app-name> -n <function-app-on-azure>
+```
+
+4. Wait for the process to finish and the triggers to properly sync
 
 ## Limitations
 
