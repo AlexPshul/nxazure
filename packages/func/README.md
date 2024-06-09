@@ -91,6 +91,8 @@ nx publish <local-app-name> -n <function-app-on-azure>
 
 4. Wait for the process to finish and the triggers to properly sync
 
+<br/>
+
 ## Limitations
 
 Currently, the plugin supports only TypeScript functions.
