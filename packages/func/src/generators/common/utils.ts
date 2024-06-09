@@ -11,7 +11,7 @@ export const createTempFolderWithInit = (tempAppName: string) => {
   const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-${tempName.pop()}-`));
 
   try {
-    execSync(`func init ${tempAppName} --worker-runtime node --language typescript`, {
+    execSync(`func init ${tempAppName} --worker-runtime node --language typescript --skip-npm-install`, {
       cwd: tempFolder,
       stdio: 'ignore',
     });
