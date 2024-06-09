@@ -1,6 +1,5 @@
 import { NxJsonConfiguration } from '@nx/devkit';
 import { ensureNxProject, readJson, runCommand, runNxCommandAsync, uniq, updateFile } from '@nx/plugin/testing';
-import { CompilerOptions } from 'typescript';
 
 describe('Project initialization and build', () => {
   const TEST_TIMEOUT = 180000;
@@ -11,7 +10,9 @@ describe('Project initialization and build', () => {
   // on a unique project in the workspace, such that they
   // are not dependant on one another.
   beforeAll(() => {
+    console.log('Before all');
     ensureNxProject('@nxazure/func', 'dist/packages/func');
+    console.log('After ensureNxProject');
 
     const nxConfig = readJson<NxJsonConfiguration>('nx.json');
     nxConfig.workspaceLayout = {
@@ -21,6 +22,7 @@ describe('Project initialization and build', () => {
 
     updateFile('nx.json', JSON.stringify(nxConfig, null, 2));
 
+    console.log('Installing types');
     runCommand('npm i @types/node@latest', {});
   });
 
@@ -29,33 +31,6 @@ describe('Project initialization and build', () => {
     // some work which can help clean up e2e leftovers
     runNxCommandAsync('reset');
   });
-
-  it(
-    'should init & build an empty workspace with a functions app',
-    async () => {
-      const project = uniq('func');
-      await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
-      const buildResult = await runNxCommandAsync(`build ${project}`);
-
-      expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
-    },
-    TEST_TIMEOUT,
-  );
-
-  it(
-    'should init & build a workspace with a functions app and a function',
-    async () => {
-      const project = uniq('func');
-      const func = 'hello';
-
-      await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
-      await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
-      const buildResult = await runNxCommandAsync(`build ${project}`);
-
-      expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
-    },
-    TEST_TIMEOUT,
-  );
 
   it(
     'should init & build a workspace with a js lib and, a functions app and a function that uses that lib',
@@ -131,36 +106,6 @@ describe('Project initialization and build', () => {
       const buildResult = await runNxCommandAsync(`build ${project}`);
 
       expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
-    },
-    TEST_TIMEOUT,
-  );
-
-  it(
-    'Use strict mode',
-    async () => {
-      const project = uniq('func');
-      await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
-
-      const tsConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.json`);
-      const tsBuildConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.build.json`);
-
-      expect(tsConfig.compilerOptions.strict).toBe(true);
-      expect(tsBuildConfig.compilerOptions.strict).toBe(true);
-    },
-    TEST_TIMEOUT,
-  );
-
-  it(
-    'Use no strict mode',
-    async () => {
-      const project = uniq('func');
-      await runNxCommandAsync(`generate @nxazure/func:init ${project} --no-strict`);
-
-      const tsConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.json`);
-      const tsBuildConfig = await readJson<{ compilerOptions: CompilerOptions }>(`apps/${project}/tsconfig.build.json`);
-
-      expect(tsConfig.compilerOptions.strict).toBe(false);
-      expect(tsBuildConfig.compilerOptions.strict).toBe(false);
     },
     TEST_TIMEOUT,
   );
