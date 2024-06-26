@@ -13,16 +13,16 @@
     "lint-staged": "lint-staged"
   },
   "devDependencies": {
-    "@nx/devkit": "18.3.3",
-    "@nx/eslint-plugin": "18.3.3",
-    "@nx/jest": "18.3.3",
-    "@nx/js": "18.3.3",
-    "@nx/linter": "18.3.3",
-    "@nx/plugin": "18.3.3",
-    "@nx/workspace": "18.3.3",
-    "@swc-node/register": "1.8.0",
-    "@swc/cli": "0.1.62",
-    "@swc/core": "1.3.96",
+    "@nx/devkit": "19.3.2",
+    "@nx/eslint-plugin": "19.3.2",
+    "@nx/jest": "19.3.2",
+    "@nx/js": "19.3.2",
+    "@nx/linter": "19.3.2",
+    "@nx/plugin": "19.3.2",
+    "@nx/workspace": "19.3.2",
+    "@swc-node/register": "1.9.2",
+    "@swc/cli": "0.3.14",
+    "@swc/core": "1.5.7",
     "@types/jest": "29.4.0",
     "@types/node": "^18.16.9",
     "@typescript-eslint/eslint-plugin": "7.3.0",
@@ -35,18 +35,17 @@
     "jest-environment-jsdom": "29.4.3",
     "jsonc-eslint-parser": "^2.1.0",
     "lint-staged": "^13.1.0",
-    "nx": "18.3.3",
+    "nx": "19.3.2",
     "prettier": "^2.6.2",
     "ts-jest": "29.1.0",
     "ts-node": "10.9.1",
     "tsc-files": "^1.1.3",
-    "typescript": "5.4.5"
+    "typescript": "^5.5.2"
   },
   "dependencies": {
-    "@swc/helpers": "0.5.3",
+    "@swc/helpers": "0.5.11",
     "glob": "^10.2.2",
     "tree-kill": "^1.2.2",
     "tslib": "^2.3.0"
   }
 }
-

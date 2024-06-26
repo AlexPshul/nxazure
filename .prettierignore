@@ -3,3 +3,5 @@
 /dist
 /coverage
 package-lock.json
+
+/.nx/workspace-data
