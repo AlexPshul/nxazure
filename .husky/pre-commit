@@ -1,5 +1,3 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
 . "$(dirname "$0")/workaround.sh"
 
 export FORCE_COLOR=true
