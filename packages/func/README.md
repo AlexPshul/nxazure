@@ -42,7 +42,7 @@ nx g @nxazure/func:init my-new-app
 5. Add a function to the app
 
 ```bash
-nx g @nxazure/func:new my-new-func --project=my-new-app --template="HTTP trigger"
+nx g @nxazure/func:new myNewFunc --project=my-new-app --template="HTTP trigger"
 ```
 
 6. Run the function app
