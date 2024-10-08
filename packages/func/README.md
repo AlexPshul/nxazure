@@ -67,6 +67,12 @@ nx start my-new-app
 
 1. If after creation the build is failing, try updating `@types/node` and/or `typescript` versions.
 2. To be able to publish a function to your Azure account, an [az login](https://learn.microsoft.com/en-us/cli/azure/authenticate-azure-cli) is required first.
+3. If you are using the [flat eslint config](https://nx.dev/recipes/tips-n-tricks/flat-config), you might want to add the following to the end of your base config export:
+```js
+  {
+    ignores: ['apps/**/dist', 'apps/**/_registerPaths.ts'],
+  }
+```
 
 <br/>
 
