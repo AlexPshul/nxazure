@@ -204,9 +204,7 @@ const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) => 
   );
 };
 
-const configureEslint = (tree: Tree, { appRoot, appNames: { name } }: NormalizedOptions) => {
-  if (!tree.exists('.eslintrc.json')) return;
-
+const setupEslintrc = (tree: Tree, appRoot: string) => {
   const relativePathToRoot = offsetFromRoot(appRoot);
   const projectJsonPath = `${appRoot}/tsconfig.*?.json`;
 
@@ -234,13 +232,48 @@ const configureEslint = (tree: Tree, { appRoot, appNames: { name } }: Normalized
   };
 
   tree.write(path.posix.join(appRoot, '.eslintrc.json'), JSON.stringify(projectEslintConfig, null, 2));
+};
+
+const setupFlatEslintConfig = (tree: Tree, appRoot: string, fileName: string) => {
+  const relativePathToRoot = offsetFromRoot(appRoot);
+  const projectJsonPath = path.posix.normalize(`${fileName}/tsconfig.*?.json`);
+
+  const configFileContent = `
+    const baseConfig = require('${relativePathToRoot}eslint.config.js');
+
+    module.exports = [
+      ...baseConfig,
+      { rules: {} },
+      {
+        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+        // Override or add rules here
+        rules: {},
+        languageOptions: { parserOptions: { project: [${path.posix.join(...projectJsonPath.split(path.sep))}], } },
+      },
+      {
+        files: ['**/*.ts', '**/*.tsx'],
+        // Override or add rules here
+        rules: {},
+      },
+      {
+        files: ['**/*.js', '**/*.jsx'],
+        // Override or add rules here
+        rules: {},
+      },
+    ];
+  `;
+
+  tree.write(path.posix.join(appRoot, 'eslint.config.js'), configFileContent);
+};
+
+const configureEslint = (tree: Tree, { appRoot, appNames: { name, fileName } }: NormalizedOptions) => {
+  if (tree.exists('.eslintrc.json')) setupEslintrc(tree, appRoot);
+  else if (tree.exists('eslint.config.js')) setupFlatEslintConfig(tree, appRoot, fileName);
+  else return;
 
   const projectConfig = readProjectConfiguration(tree, name);
   projectConfig.targets.lint = {
-    executor: '@nx/linter:eslint',
-    options: {
-      lintFilePatterns: [`apps/${name}/**/*.ts`],
-    },
+    executor: '@nx/eslint:lint',
     outputs: ['{options.outputFile}'],
   };
 

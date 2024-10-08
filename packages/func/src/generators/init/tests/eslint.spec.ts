@@ -26,18 +26,23 @@ describe('Init with no eslint', () => {
   it(
     'No global config -> no app config',
     async () => {
-      await generator(appTree, { ...baseOptions, name: baseOptions.name + '1' });
+      const name = baseOptions.name + '1';
+      await generator(appTree, { ...baseOptions, name });
 
       const eslintConfigExists = appTree.exists('apps/hello-world1/.eslintrc.json');
       expect(eslintConfigExists).toBeFalsy();
+
+      const projectConfiguration = readProjectConfiguration(appTree, name);
+      expect(projectConfiguration).not.toHaveProperty('targets.lint');
     },
     TEST_TIMEOUT,
   );
 
   it(
-    'Global config exists -> app config generated',
+    'Global old config exists -> app config generated',
     async () => {
       appTree.write('.eslintrc.json', JSON.stringify({}));
+
       const name = baseOptions.name + '2';
       await generator(appTree, { ...baseOptions, name });
 
@@ -46,6 +51,27 @@ describe('Init with no eslint', () => {
 
       const projectConfiguration = readProjectConfiguration(appTree, name);
       expect(projectConfiguration).toHaveProperty('targets.lint');
+
+      appTree.delete('.eslintrc.json');
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    'Global flat config exists -> app config generated',
+    async () => {
+      appTree.write('eslint.config.js', '');
+
+      const name = baseOptions.name + '3';
+      await generator(appTree, { ...baseOptions, name });
+
+      const eslintConfigExists = appTree.exists('apps/hello-world3/eslint.config.js');
+      expect(eslintConfigExists).toBeTruthy();
+
+      const projectConfiguration = readProjectConfiguration(appTree, name);
+      expect(projectConfiguration).toHaveProperty('targets.lint');
+
+      appTree.delete('eslint.config.js');
     },
     TEST_TIMEOUT,
   );
