@@ -13,6 +13,7 @@
     "lint-staged": "lint-staged"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^2.1.1",
     "@nx/devkit": "19.8.4",
     "@nx/eslint-plugin": "19.8.4",
     "@nx/jest": "19.8.4",
@@ -40,7 +41,8 @@
     "ts-jest": "29.2.5",
     "ts-node": "10.9.2",
     "tsc-files": "^1.1.4",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.0.0"
   },
   "dependencies": {
     "@swc/helpers": "0.5.13",
