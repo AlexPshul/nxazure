@@ -57,9 +57,10 @@ nx start my-new-app
 
 1. Support for TS Config paths (e.g., `import { tool } from '@my-org/my-lib'`)
 2. Support for a single `node_modules` folder in the root dir (just like in other monorepo solutions)
-3. All current templates that are supported by the `func` CLI tool are supported.
-4. Run multiple functions at once `nx run-many --target=start --all`
-5. Publish the function app straight to your Azure account (az login is required)
+3. Environment variables are loaded by NX (from .env files) but they can be overwritten by individual local.settings.json files
+4. All current templates that are supported by the `func` CLI tool are supported.
+5. Run multiple functions at once `nx run-many --target=start --all`
+6. Publish the function app straight to your Azure account (az login is required)
 
 <br/>
 
