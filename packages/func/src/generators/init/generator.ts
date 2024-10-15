@@ -248,7 +248,7 @@ const setupFlatEslintConfig = (tree: Tree, appRoot: string, fileName: string) =>
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
         // Override or add rules here
         rules: {},
-        languageOptions: { parserOptions: { project: [${path.posix.join(...projectJsonPath.split(path.sep))}], } },
+        languageOptions: { parserOptions: { project: ['${path.posix.join(...projectJsonPath.split(path.sep))}'], } },
       },
       {
         files: ['**/*.ts', '**/*.tsx'],
