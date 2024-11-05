@@ -23,7 +23,7 @@ const findModule = (dependencies: Record<string, string>, moduleName: string) =>
 };
 
 export const getCopyPackageToAppTransformerFactory = (context: ExecutorContext) => {
-  const appRoot = context.workspace?.projects[context.projectName].root;
+  const appRoot = context.projectsConfigurations?.projects[context.projectName].root;
   const appPackageJson = readJsonFile<{ dependencies: Record<string, string> }>(path.join(appRoot, 'package.json'));
   const originalPackageJson = readJsonFile<{ dependencies: Record<string, string> }>(path.join(context.cwd, 'package.json'));
 
@@ -32,11 +32,10 @@ export const getCopyPackageToAppTransformerFactory = (context: ExecutorContext) 
       if (isImportDeclaration(node)) {
         const cleanedModuleName = node.moduleSpecifier.getText().replace(/['"]/g, '');
         const moduleInOriginalPackageJson = findModule(originalPackageJson.dependencies, cleanedModuleName);
-         // Create a dependencies section in the app package.json if it doesn't exist
-        if (!appPackageJson.dependencies) 
-          appPackageJson.dependencies = {};
-        
-       // If the original package.json has the dependency, copy it to the app package.json
+        // Create a dependencies section in the app package.json if it doesn't exist
+        if (!appPackageJson.dependencies) appPackageJson.dependencies = {};
+
+        // If the original package.json has the dependency, copy it to the app package.json
         if (
           moduleInOriginalPackageJson &&
           appPackageJson.dependencies[moduleInOriginalPackageJson] !== originalPackageJson.dependencies[moduleInOriginalPackageJson]

@@ -5,7 +5,7 @@ import { CompilerOptions } from 'typescript';
 import { TS_CONFIG_BASE_FILE, TS_CONFIG_BUILD_FILE } from '../../common';
 
 export const prepareBuild = (context: ExecutorContext) => {
-  const appRoot = context.workspace?.projects[context.projectName].root;
+  const appRoot = context.projectsConfigurations?.projects[context.projectName].root;
   const relativePathToRoot = offsetFromRoot(appRoot);
 
   const configPath = path.join(appRoot, TS_CONFIG_BUILD_FILE);

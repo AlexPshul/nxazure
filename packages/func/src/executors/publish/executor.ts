@@ -9,7 +9,7 @@ const executor: Executor<PublishExecutorSchema> = async (options, context) => {
   const success = await build(context);
 
   if (success) {
-    const { projectName, workspace, isVerbose, target } = context;
+    const { projectName, projectsConfigurations, isVerbose, target } = context;
 
     const { name, additionalFlags } = options;
     const installCommand = 'npm i';
@@ -17,7 +17,7 @@ const executor: Executor<PublishExecutorSchema> = async (options, context) => {
       console.log(`Running ${target.executor} command: ${installCommand}.`);
     }
 
-    const cwd = workspace?.projects[projectName].root;
+    const cwd = projectsConfigurations?.projects[projectName].root;
     execSync(installCommand, { stdio: 'inherit', cwd });
 
     const publishCommand = `func azure functionapp publish ${name}${additionalFlags ? ` ${additionalFlags}` : ''}`;

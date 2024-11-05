@@ -22,7 +22,7 @@ const loadProcessEnvWithoutOverrides = (projectCwd: string) => {
 
 const executor: Executor<StartExecutorSchema> = async (options, context) => {
   const { port, disableWatch, additionalFlags } = options;
-  const { workspace, projectName, isVerbose, target } = context;
+  const { projectsConfigurations, projectName, isVerbose, target } = context;
 
   const logger = new FuncLogger(projectName);
   let spawned: ChildProcessWithoutNullStreams | null = null;
@@ -33,7 +33,7 @@ const executor: Executor<StartExecutorSchema> = async (options, context) => {
 
     if (isVerbose) console.log(`Running ${target.executor} command: func ${params.join(' ')}.`);
 
-    const cwd = workspace?.projects[projectName].root;
+    const cwd = projectsConfigurations?.projects[projectName].root;
     const noOverridesEnvVars = loadProcessEnvWithoutOverrides(cwd);
     spawned = spawn('func', params, { cwd, detached: false, shell: true, env: noOverridesEnvVars });
 

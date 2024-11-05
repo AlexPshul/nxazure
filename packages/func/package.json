@@ -15,8 +15,8 @@
     "migrations": "./migrations.json"
   },
   "dependencies": {
-    "@nx/devkit": "19.3.2",
-    "@nx/workspace": "19.3.2",
+    "@nx/devkit": "20.0.8",
+    "@nx/workspace": "20.0.8",
     "typescript": "5.5.2",
     "glob": "^10.2.2",
     "tree-kill": "^1.2.2",
