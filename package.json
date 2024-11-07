@@ -6,8 +6,8 @@
     "start": "nx serve",
     "build": "nx build",
     "build:all": "nx run-many --target=build --all",
-    "test": "nx test",
-    "test:all": "nx run-many --target=test --all",
+    "test": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" nx test",
+    "test:all": "cross-env NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" nx run-many --target=test --all",
     "e2e:all": "nx run-many --target=e2e --all",
     "prepare": "is-ci || husky",
     "lint-staged": "lint-staged"
@@ -28,6 +28,7 @@
     "@types/node": "^20.14.8",
     "@typescript-eslint/eslint-plugin": "8.6.0",
     "@typescript-eslint/parser": "8.6.0",
+    "cross-env": "^7.0.3",
     "eslint": "9.11.0",
     "eslint-config-prettier": "9.1.0",
     "husky": "^9.1.6",
