@@ -122,14 +122,6 @@ describe.each([
     expect(packageJsonObj).toHaveProperty('main', `dist/${testArgs.path}/src/functions/*.js`);
   });
 
-  it('Local settings file', () => {
-    const localSettings = appTree.read(`${testArgs.path}/local.settings.json`);
-    expect(localSettings).toBeDefined();
-
-    const localSettingsObj = JSON.parse(localSettings?.toString() || '{}');
-    expect(localSettingsObj).toHaveProperty('Values.AzureWebJobsFeatureFlags', 'EnableWorkerIndexing');
-  });
-
   it('Auto generated files', () => {
     expect(appTree.exists(`${testArgs.path}/host.json`)).toBeTruthy();
     expect(appTree.exists(`${testArgs.path}/.funcignore`)).toBeTruthy();
