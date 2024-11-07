@@ -1,9 +1,16 @@
-import { Executor } from '@nx/devkit';
+import { detectPackageManager, Executor, getPackageManagerCommand } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { build } from '../common';
 import { PublishExecutorSchema } from './schema';
+
+const getInstallCommand = () => {
+  const rawInstallCommand = getPackageManagerCommand().install;
+
+  const packageManager = detectPackageManager();
+  return packageManager === 'pnpm' ? `${rawInstallCommand} --node-linker=hoisted` : rawInstallCommand;
+};
 
 const executor: Executor<PublishExecutorSchema> = async (options, context) => {
   const success = await build(context);
@@ -12,7 +19,7 @@ const executor: Executor<PublishExecutorSchema> = async (options, context) => {
     const { projectName, projectsConfigurations, isVerbose, target } = context;
 
     const { name, additionalFlags } = options;
-    const installCommand = 'npm i';
+    const installCommand = getInstallCommand();
     if (isVerbose) {
       console.log(`Running ${target.executor} command: ${installCommand}.`);
     }
