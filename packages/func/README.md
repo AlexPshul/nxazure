@@ -10,6 +10,10 @@ This plugin allows you to initialize, create, build, run and publish Azure Funct
 </p>
 <hr>
 
+## Versioning
+For **NX <= 19**, use @nxazure/func version **1.2.0** and lower  
+For **NX >= 20**, use @nxazure/func version **1.2.1** and higher
+
 ## Table of Contents
 1. [Quick Start](#quick-start)
 2. [Features](#features)
