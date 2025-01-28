@@ -11,10 +11,12 @@ This plugin allows you to initialize, create, build, run and publish Azure Funct
 <hr>
 
 ## Versioning
-For **NX <= 19**, use @nxazure/func version **1.2.0** and lower  
+
+For **NX <= 19**, use @nxazure/func version **1.2.0** and lower
 For **NX >= 20**, use @nxazure/func version **1.2.1** and higher
 
 ## Table of Contents
+
 1. [Quick Start](#quick-start)
 2. [Features](#features)
 3. [Known possible issues](#known-possible-issues)
@@ -40,7 +42,7 @@ npm install -D @nxazure/func
 4. Initialize a function app
 
 ```bash
-nx g @nxazure/func:init my-new-app
+nx g @nxazure/func:init my-new-app --directory=apps/my-new-app
 ```
 
 5. Add a function to the app
@@ -73,6 +75,7 @@ nx start my-new-app
 1. If after creation the build is failing, try updating `@types/node` and/or `typescript` versions.
 2. To be able to publish a function to your Azure account, an [az login](https://learn.microsoft.com/en-us/cli/azure/authenticate-azure-cli) is required first.
 3. If you are using the [flat eslint config](https://nx.dev/recipes/tips-n-tricks/flat-config), you might want to add the following to the end of your base config export:
+
 ```js
   {
     ignores: ['apps/**/dist', 'apps/**/_registerPaths.ts'],
@@ -84,11 +87,13 @@ nx start my-new-app
 ## Publish to Azure
 
 1. Sign in to Azure
+
 ```bash
 az login
 ```
 
 2. Make sure you select the correct subscription
+
 ```bash
 az account set --subscription "<subscription ID or name>"
 ```
@@ -96,6 +101,7 @@ az account set --subscription "<subscription ID or name>"
 You can learn more about it on [Microsoft Learn](https://learn.microsoft.com/en-us/cli/azure/authenticate-azure-cli).
 
 3. Use the name of your local NX app and the name of your existing function app on Azure to run the publish command:
+
 ```bash
 nx publish <local-app-name> -n <function-app-on-azure>
 ```
