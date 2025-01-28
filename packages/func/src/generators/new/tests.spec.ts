@@ -31,6 +31,7 @@ const TEST_TIMEOUT = 120000;
 
 describe('new generator', () => {
   const projectName = 'HelloWorld';
+  const directory = 'apps/hello-world';
   let appTree: Tree;
   const options: NewGeneratorSchema = {
     project: projectName,
@@ -43,12 +44,12 @@ describe('new generator', () => {
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
-    await initProjecteGenerator(appTree, { name: projectName, strict: true, silent: true, tags: '' });
+    await initProjecteGenerator(appTree, { name: projectName, directory, strict: true, silent: true, tags: '' });
   }, TEST_TIMEOUT);
 
   it.each(supportedTemplates)('%s supported template function', async (template, name, fileName) => {
     await generator(appTree, { ...options, template, name });
-    appTree.exists(`apps/${projectName}/src/functions/${fileName}.ts`);
+    appTree.exists(`${directory}/src/functions/${fileName}.ts`);
   });
 
   it('Non existing template', async () => {

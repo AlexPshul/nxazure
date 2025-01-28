@@ -2,7 +2,6 @@ import {
   addProjectConfiguration,
   formatFiles,
   getProjects,
-  getWorkspaceLayout,
   installPackagesTask,
   names,
   offsetFromRoot,
@@ -36,17 +35,14 @@ type NormalizedOptions = {
 
 const staticFilesToCopy = ['host.json', 'local.settings.json', '.funcignore'];
 
-const normalizeOptions = (tree: Tree, { name, strict, tags }: InitGeneratorSchema): NormalizedOptions => {
+const normalizeOptions = (tree: Tree, { name, directory, strict, tags }: InitGeneratorSchema): NormalizedOptions => {
   const appNames = names(name);
 
-  const { appsDir } = getWorkspaceLayout(tree);
-  const appRoot = path.posix.join(appsDir, appNames.fileName);
-
-  if (tree.exists(appRoot) && tree.children(appRoot).length > 0)
-    throw new Error(`Project [${name} (${appNames.fileName})] already exists in the workspace.`);
+  if (tree.exists(directory) && tree.children(directory).length > 0)
+    throw new Error(`Directory [${directory})] already exists in the workspace. If it's empty, delete it and run the command again.`);
 
   return {
-    appRoot,
+    appRoot: directory,
     appNames,
     strict,
     tags: tags.split(',').map(s => s.trim()) || [],

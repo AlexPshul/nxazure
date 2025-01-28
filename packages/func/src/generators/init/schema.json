@@ -13,6 +13,11 @@
       },
       "x-prompt": "What is the name of your azure function app?"
     },
+    "directory": {
+      "type": "string",
+      "description": "Directory to create the function app in",
+      "x-prompt": "What directory would you like to create the function app in? NOTE! The name of the function app will no longer be used as the directory name."
+    },
     "strict": {
       "type": "boolean",
       "description": "Create a strict TypeScript project",
@@ -29,5 +34,5 @@
       "default": ""
     }
   },
-  "required": ["name"]
+  "required": ["name", "directory"]
 }

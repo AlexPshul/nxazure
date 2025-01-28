@@ -16,7 +16,9 @@ const TEST_TIMEOUT = 120000;
 
 describe('Check strict option', () => {
   let appTree: Tree;
-  const partialOptions: Omit<InitGeneratorSchema, 'strict'> = { name: 'HelloWorld', silent: true, tags: '' };
+  const name = 'HelloWorld';
+  const directory = 'apps/hello-world';
+  const partialOptions: Omit<InitGeneratorSchema, 'strict'> = { name, directory, silent: true, tags: '' };
 
   beforeEach(() => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
@@ -26,8 +28,8 @@ describe('Check strict option', () => {
     'Strict option is true',
     async () => {
       await generator(appTree, { ...partialOptions, strict: true });
-      const workspaceTsConfig = appTree.read('apps/hello-world/tsconfig.json');
-      const buildTsConfig = appTree.read('apps/hello-world/tsconfig.build.json');
+      const workspaceTsConfig = appTree.read(`${directory}/tsconfig.json`);
+      const buildTsConfig = appTree.read(`${directory}/tsconfig.build.json`);
 
       const workspaceTsConfigObj = JSON.parse(workspaceTsConfig?.toString() || '{}');
       const buildTsConfigObj = JSON.parse(buildTsConfig?.toString() || '{}');
@@ -42,8 +44,8 @@ describe('Check strict option', () => {
     'Strict option is false',
     async () => {
       await generator(appTree, { ...partialOptions, strict: false });
-      const workspaceTsConfig = appTree.read('apps/hello-world/tsconfig.json');
-      const buildTsConfig = appTree.read('apps/hello-world/tsconfig.build.json');
+      const workspaceTsConfig = appTree.read(`${directory}/tsconfig.json`);
+      const buildTsConfig = appTree.read(`${directory}/tsconfig.build.json`);
 
       const workspaceTsConfigObj = JSON.parse(workspaceTsConfig?.toString() || '{}');
       const buildTsConfigObj = JSON.parse(buildTsConfig?.toString() || '{}');

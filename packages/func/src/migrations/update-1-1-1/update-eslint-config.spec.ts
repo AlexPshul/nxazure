@@ -18,7 +18,7 @@ const TEST_TIMEOUT = 120000;
 describe('update-eslint-config migration', () => {
   const projectName = 'test-eslint-update';
   let appTree: Tree;
-  const options: InitGeneratorSchema = { name: projectName, strict: true, silent: true, tags: '' };
+  const options: InitGeneratorSchema = { name: projectName, directory: 'apps/test-eslint-update', strict: true, silent: true, tags: '' };
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });

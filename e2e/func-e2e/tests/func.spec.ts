@@ -36,14 +36,15 @@ describe('Project initialization and build', () => {
     'should init & build a workspace with a js lib and, a functions app and a function that uses that lib',
     async () => {
       const project = uniq('func');
+      const directory = `apps/${project}`;
       const lib = uniq('lib');
       const func = 'hello';
 
-      await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
+      await runNxCommandAsync(`generate @nxazure/func:init ${project} --directory=${directory}`);
       await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
       await runNxCommandAsync(`generate @nx/js:library ${lib}`);
 
-      const funcFilePath = `apps/${project}/${func}/index.ts`;
+      const funcFilePath = `${directory}/src/functions/${func}.ts`;
 
       updateFile(
         funcFilePath,
@@ -74,15 +75,16 @@ describe('Project initialization and build', () => {
   it(
     'should init & build a workspace with a js lib, a nested functions app (apps/test/my-app) and a function that uses that lib',
     async () => {
-      const project = `sub-app/${uniq('func')}`;
+      const project = `${uniq('func')}`;
+      const directory = `apps/sub-app/${project}`;
       const lib = uniq('lib');
       const func = 'hello';
 
-      await runNxCommandAsync(`generate @nxazure/func:init ${project}`);
+      await runNxCommandAsync(`generate @nxazure/func:init ${project} --directory=${directory}`);
       await runNxCommandAsync(`generate @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
       await runNxCommandAsync(`generate @nx/js:library ${lib}`);
 
-      const funcFilePath = `apps/${project}/${func}/index.ts`;
+      const funcFilePath = `${directory}/src/functions/${func}.ts`;
 
       updateFile(
         funcFilePath,

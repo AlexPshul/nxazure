@@ -1,4 +1,4 @@
-import { getWorkspaceLayout, names, Tree } from '@nx/devkit';
+import { names, readProjectConfiguration, Tree } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
@@ -20,11 +20,9 @@ const isTemplateValid = (template: string): template is Template => TemplateValu
 
 const normalizeOptions = (tree: Tree, { name, project, template, language, authLevel, silent }: NewGeneratorSchema): NormalizedOptions => {
   const funcNames = names(name);
-  const projectNames = names(project);
 
-  const { appsDir } = getWorkspaceLayout(tree);
-  const projectRoot = path.join(appsDir, names(project).fileName);
-  if (!tree.exists(projectRoot)) throw new Error(`Project [${project} (${projectNames.fileName})] does not exist in the workspace.`);
+  const { root: projectRoot } = readProjectConfiguration(tree, project);
+  if (!tree.exists(projectRoot)) throw new Error(`Project [${project}] does not exist in the workspace.`);
 
   if (!isTemplateValid(template)) throw new Error(`Template [${template}] is not supported.`);
 

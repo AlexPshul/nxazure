@@ -17,18 +17,18 @@ const TEST_TIMEOUT = 120000;
 describe.each([
   {
     name: 'HelloWorld',
-    path: 'apps/hello-world',
+    directory: 'apps/hello-world',
     sublevelFromRoot: 2,
   },
   {
     name: 'core/HelloWorld',
-    path: 'apps/core/hello-world',
+    directory: 'apps/core/hello-world',
     sublevelFromRoot: 3,
   },
-])('Check files', (testArgs: { name: string; path: string; sublevelFromRoot: number }) => {
+])('Check files', (testArgs: { name: string; directory: string; sublevelFromRoot: number }) => {
   const projectName = testArgs.name;
   let appTree: Tree;
-  const options: InitGeneratorSchema = { name: projectName, strict: true, silent: true, tags: '' };
+  const options: InitGeneratorSchema = { name: projectName, directory: testArgs.directory, strict: true, silent: true, tags: '' };
 
   beforeAll(async () => {
     appTree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
@@ -37,7 +37,7 @@ describe.each([
   }, TEST_TIMEOUT);
 
   it('Folder name', () => {
-    expect(appTree.exists(testArgs.path)).toBeTruthy();
+    expect(appTree.exists(testArgs.directory)).toBeTruthy();
   });
 
   it('Project config', () => {
@@ -72,7 +72,7 @@ describe.each([
   });
 
   it('Workspace TS config file', () => {
-    const tsconfig = appTree.read(`${testArgs.path}/tsconfig.json`);
+    const tsconfig = appTree.read(`${testArgs.directory}/tsconfig.json`);
     expect(tsconfig).toBeDefined();
 
     const tsconfigObj = JSON.parse(tsconfig?.toString() || '{}');
@@ -84,7 +84,7 @@ describe.each([
   });
 
   it('Build TS config file', () => {
-    const tsconfig = appTree.read(`${testArgs.path}/tsconfig.build.json`);
+    const tsconfig = appTree.read(`${testArgs.directory}/tsconfig.build.json`);
     expect(tsconfig).toBeDefined();
 
     const tsconfigObj = JSON.parse(tsconfig?.toString() || '{}');
@@ -106,25 +106,25 @@ describe.each([
   });
 
   it('Project eslint config file', () => {
-    const eslintConfig = appTree.read(`${testArgs.path}/.eslintrc.json`);
+    const eslintConfig = appTree.read(`${testArgs.directory}/.eslintrc.json`);
     expect(eslintConfig).toBeDefined();
 
     const eslintConfigObj = JSON.parse(eslintConfig?.toString() || '{}');
     expect(eslintConfigObj).toHaveProperty('extends', `${'../'.repeat(testArgs.sublevelFromRoot)}.eslintrc.json`);
-    expect(eslintConfigObj.overrides[0]).toHaveProperty('parserOptions.project', [`${testArgs.path}/tsconfig.*?.json`]);
+    expect(eslintConfigObj.overrides[0]).toHaveProperty('parserOptions.project', [`${testArgs.directory}/tsconfig.*?.json`]);
   });
 
   it('Project package.json file', () => {
-    const packageJson = appTree.read(`${testArgs.path}/package.json`);
+    const packageJson = appTree.read(`${testArgs.directory}/package.json`);
     expect(packageJson).toBeDefined();
 
     const packageJsonObj = JSON.parse(packageJson?.toString() || '{}');
-    expect(packageJsonObj).toHaveProperty('main', `dist/${testArgs.path}/src/functions/*.js`);
+    expect(packageJsonObj).toHaveProperty('main', `dist/${testArgs.directory}/src/functions/*.js`);
   });
 
   it('Auto generated files', () => {
-    expect(appTree.exists(`${testArgs.path}/host.json`)).toBeTruthy();
-    expect(appTree.exists(`${testArgs.path}/.funcignore`)).toBeTruthy();
-    expect(appTree.exists(`${testArgs.path}/_registerPaths.ts`)).toBeTruthy();
+    expect(appTree.exists(`${testArgs.directory}/host.json`)).toBeTruthy();
+    expect(appTree.exists(`${testArgs.directory}/.funcignore`)).toBeTruthy();
+    expect(appTree.exists(`${testArgs.directory}/_registerPaths.ts`)).toBeTruthy();
   });
 });
