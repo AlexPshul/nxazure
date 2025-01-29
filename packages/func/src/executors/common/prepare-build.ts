@@ -25,10 +25,11 @@ const processConfig = (appRoot: string, cwd: string, relativePathToRoot: string)
 
   const baseConfigPath = path.join(cwd, TS_CONFIG_BASE_FILE);
   const baseConfig = readJsonFile<TsConfig>(baseConfigPath);
+  const parsedConfigFile = ts.parseJsonConfigFileContent(baseConfig, ts.sys, appRoot);
 
   if (baseConfig.compilerOptions.paths) {
     const tsFiles = getAllTsFiles(appRoot);
-    const program = ts.createProgram(tsFiles, baseConfig.compilerOptions);
+    const program = ts.createProgram(tsFiles, parsedConfigFile.options);
     const checker = program.getTypeChecker();
 
     const baseConfigPathsKeys = new Set(Object.keys(baseConfig.compilerOptions.paths));
