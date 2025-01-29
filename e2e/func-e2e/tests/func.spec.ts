@@ -1,5 +1,5 @@
 import { NxJsonConfiguration } from '@nx/devkit';
-import { ensureNxProject, readJson, runCommand, runNxCommandAsync, uniq, updateFile } from '@nx/plugin/testing';
+import { ensureNxProject, readJson, runCommand, runCommandAsync, runNxCommandAsync, uniq, updateFile } from '@nx/plugin/testing';
 
 const lib1 = 'lvl1lib';
 const lib2 = 'lvl2lib';
@@ -43,6 +43,7 @@ return ${lib2}();
 }
       `,
     );
+    console.log('Generated the libs and ready to test');
   }, TEST_TIMEOUT);
 
   afterAll(() => {
@@ -56,6 +57,7 @@ return ${lib2}();
 
     await runNxCommandAsync(`g @nxazure/func:init ${project} --directory=${directory}`);
     await runNxCommandAsync(`g @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
+    await runCommandAsync('npm i');
 
     const funcFilePath = `${directory}/src/functions/${func}.ts`;
 
@@ -89,6 +91,8 @@ app.http('hello', {
     async () => {
       const project = uniq('func');
       const directory = `apps/${project}`;
+
+      console.log('Checking test 1');
       await checkTheThing(project, directory);
     },
     TEST_TIMEOUT,
@@ -99,6 +103,8 @@ app.http('hello', {
     async () => {
       const project = `${uniq('func')}`;
       const directory = `apps/sub-app/${project}`;
+
+      console.log('Checking test 2');
       await checkTheThing(project, directory);
     },
     TEST_TIMEOUT,
