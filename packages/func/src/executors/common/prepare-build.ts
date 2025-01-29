@@ -28,27 +28,39 @@ const processConfig = (appRoot: string, cwd: string, relativePathToRoot: string)
 
   if (baseConfig.compilerOptions.paths) {
     const tsFiles = getAllTsFiles(appRoot);
-    const program = ts.createProgram(tsFiles, {});
-    const foundModules = new Set<string>();
+    const program = ts.createProgram(tsFiles, baseConfig.compilerOptions);
+    const checker = program.getTypeChecker();
 
-    for (const file of tsFiles) {
-      const sourceFile = program.getSourceFile(file);
-      if (!sourceFile) continue;
+    const baseConfigPathsKeys = new Set(Object.keys(baseConfig.compilerOptions.paths));
+    config.compilerOptions.paths = {};
+
+    const visited = new Set<string>();
+    const visitFile = (file: string | ts.SourceFile) => {
+      const sourceFile = typeof file === 'string' ? program.getSourceFile(file) : file;
+      if (!sourceFile) return;
+
+      if (visited.has(sourceFile.fileName)) return;
+      visited.add(sourceFile.fileName);
 
       ts.forEachChild(sourceFile, node => {
-        if (ts.isImportDeclaration(node) && node.moduleSpecifier) {
-          const moduleName = node.moduleSpecifier.getText(sourceFile).replace(/['"]/g, '');
-          if (!foundModules.has(moduleName)) foundModules.add(moduleName);
+        if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier) {
+          // recordModuleAndGoDeeper(node.moduleSpecifier, sourceFile);
+          const module = node.moduleSpecifier.getText(sourceFile).replace(/['"]/g, '');
+          if (baseConfigPathsKeys.has(module) && !config.compilerOptions.paths[module])
+            config.compilerOptions.paths[module] = baseConfig.compilerOptions.paths[module].map(path => `${relativePathToRoot}${path}`);
+
+          const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
+          if (symbol?.declarations) {
+            for (const declaration of symbol.declarations) {
+              const sourceFile = declaration.getSourceFile();
+              if (!sourceFile?.fileName.includes('/node_modules/')) visitFile(sourceFile);
+            }
+          }
         }
       });
-    }
+    };
 
-    config.compilerOptions.paths = {};
-    const baseConfigPathsKeys = new Set(Object.keys(baseConfig.compilerOptions.paths));
-    for (const module of foundModules) {
-      if (baseConfigPathsKeys.has(module))
-        config.compilerOptions.paths[module] = baseConfig.compilerOptions.paths[module].map(path => `${relativePathToRoot}${path}`);
-    }
+    tsFiles.forEach(visitFile);
   }
 
   writeJsonFile(configPath, config);
