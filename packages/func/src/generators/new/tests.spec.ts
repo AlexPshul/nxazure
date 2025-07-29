@@ -54,7 +54,7 @@ describe('new generator', () => {
 
   it('Non existing template', async () => {
     const template = 'Non existing template';
-    expect(generator(appTree, { ...options, template, name: 'non-existing-test' })).rejects.toThrowError(
+    expect(generator(appTree, { ...options, template, name: 'non-existing-test' })).rejects.toThrow(
       `Template [${template}] is not supported.`,
     );
   });
