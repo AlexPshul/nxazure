@@ -13,15 +13,14 @@ describe('Project initialization and build', () => {
   // on a unique project in the workspace, such that they
   // are not dependant on one another.
   beforeAll(async () => {
+    process.env.NX_DAEMON = 'false';
+
     console.log('Before all');
     ensureNxProject('@nxazure/func', 'dist/packages/func');
     console.log('After ensureNxProject');
 
     const nxConfig = readJson<NxJsonConfiguration>('nx.json');
-    nxConfig.workspaceLayout = {
-      appsDir: 'apps',
-      libsDir: 'libs',
-    };
+    nxConfig.workspaceLayout = { appsDir: 'apps', libsDir: 'libs' };
 
     updateFile('nx.json', JSON.stringify(nxConfig, null, 2));
 
@@ -46,11 +45,11 @@ return ${lib2}();
     console.log('Generated the libs and ready to test');
   }, TEST_TIMEOUT);
 
-  afterAll(() => {
+  afterAll(async () => {
     // `nx reset` kills the daemon, and performs
     // some work which can help clean up e2e leftovers
-    runNxCommandAsync('reset');
-  });
+    await runNxCommandAsync('reset');
+  }, TEST_TIMEOUT);
 
   const checkTheThing = async (project: string, directory: string) => {
     const func = 'hello';
@@ -81,9 +80,16 @@ app.http('hello', {
   `,
     );
 
-    const buildResult = await runNxCommandAsync(`build ${project}`);
+    console.log('Running build...');
+    try {
+      const buildResult = await runNxCommandAsync(`build ${project}`);
+      if (buildResult.stderr) console.error('Error: ', buildResult.stderr);
 
-    expect(buildResult.stdout).toContain(`Done compiling TypeScript files for project "${project}"`);
+      expect(buildResult.stdout).toContain(`<⚡> Azure Functions build is ready for project "${project}".`);
+    } catch (e) {
+      console.error('Build failed with error: ', e);
+      throw e;
+    }
   };
 
   it(

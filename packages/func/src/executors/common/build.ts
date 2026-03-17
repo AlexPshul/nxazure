@@ -1,18 +1,35 @@
-import { ExecutorContext } from '@nx/devkit';
-import { compileTypeScript } from '@nx/workspace/src/utilities/typescript/compilation';
+import { ExecutorContext, logger } from '@nx/devkit';
+import fs from 'fs';
+import ts from 'typescript';
 import { getCopyPackageToAppTransformerFactory } from './get-copy-package-to-app-transformer-factory';
 import { injectPathRegistration } from './inject-path-registration';
 import { prepareBuild } from './prepare-build';
+import { CompileOptions, formatDiagnostics, getNormalizedTsConfig } from './utils';
+
+// Adapted from Nx's TypeScript compilation utility for Azure Functions builds.
+const compileTypeScript = (compileOptions: CompileOptions, context: ExecutorContext) => {
+  const tsConfig = getNormalizedTsConfig(compileOptions);
+  fs.rmSync(compileOptions.outputPath, { recursive: true, force: true });
+  const host = ts.createCompilerHost(tsConfig.options);
+  const program = ts.createProgram({ rootNames: tsConfig.fileNames, options: tsConfig.options, host });
+
+  logger.info(`<⚡> Compiling Azure Functions for project "${compileOptions.projectName}"...`);
+
+  const result = program.emit(undefined, undefined, undefined, undefined, { before: [getCopyPackageToAppTransformerFactory(context)] });
+
+  if (result.emitSkipped) {
+    logger.error(formatDiagnostics(result.diagnostics));
+    return { success: false };
+  }
+
+  logger.info(`<⚡> Azure Functions build is ready for project "${compileOptions.projectName}".`);
+  return { success: true };
+};
 
 export const build = async (context: ExecutorContext) => {
   const { appRoot, options } = prepareBuild(context);
 
-  const { success } = compileTypeScript({
-    ...options,
-    getCustomTransformers: () => ({
-      before: [getCopyPackageToAppTransformerFactory(context)],
-    }),
-  });
+  const { success } = compileTypeScript(options, context);
 
   await injectPathRegistration(options.outputPath, appRoot);
 

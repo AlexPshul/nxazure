@@ -1,6 +1,6 @@
 import { Executor, readJsonFile } from '@nx/devkit';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
-import { fileExists } from 'nx/src/utils/fileutils';
+import fs from 'fs';
 import treeKill from 'tree-kill';
 import { color } from '../../common';
 import { build, watch } from '../common';
@@ -10,7 +10,7 @@ import { StartExecutorSchema } from './schema';
 const loadProcessEnvWithoutOverrides = (projectCwd: string) => {
   const localProcessEnvCopy = { ...process.env };
   const localSettingsJsonPath = `${projectCwd}/local.settings.json`;
-  if (!fileExists(localSettingsJsonPath)) return localProcessEnvCopy;
+  if (!fs.existsSync(localSettingsJsonPath)) return localProcessEnvCopy;
 
   const localSettingsConfig = readJsonFile<{ Values: Record<string, string> }>(localSettingsJsonPath).Values;
   if (!localSettingsConfig) return localProcessEnvCopy;

@@ -1,5 +1,4 @@
 import { ExecutorContext } from '@nx/devkit';
-import { readTsConfig } from '@nx/workspace/src/utilities/ts-config';
 import fs from 'fs';
 import {
   Diagnostic,
@@ -14,6 +13,7 @@ import { color } from '../../common';
 import { getCopyPackageToAppTransformerFactory } from './get-copy-package-to-app-transformer-factory';
 import { injectPathRegistration } from './inject-path-registration';
 import { prepareBuild } from './prepare-build';
+import { readTsConfig } from './utils';
 
 const formatHost: FormatDiagnosticsHost = {
   getCanonicalFileName: path => path,
