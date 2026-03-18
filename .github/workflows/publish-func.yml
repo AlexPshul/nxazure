@@ -7,6 +7,10 @@ on:
   release:
     types: [created]
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   Release:
     name: Build, test and release
@@ -17,8 +21,10 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          registry-url: 'https://registry.npmjs.org'
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+      - name: Upgrade npm
+        run: npm install -g npm@latest
       - name: Install func CLI 🛠️
         run: npm i -g azure-functions-core-tools@4 --unsafe-perm true
       - name: Install dependencies 🛠️
@@ -32,5 +38,3 @@ jobs:
       - name: Publish package on NPM 📦
         if: ${{ github.event_name == 'release' }}
         run: npm publish dist/packages/func --access=public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
