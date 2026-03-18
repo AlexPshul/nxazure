@@ -14,7 +14,7 @@ const compileTypeScript = (compileOptions: CompileOptions, context: ExecutorCont
   const host = ts.createCompilerHost(tsConfig.options);
   const program = ts.createProgram({ rootNames: tsConfig.fileNames, options: tsConfig.options, host });
 
-  logger.info(`<⚡> Compiling Azure Functions for project "${compileOptions.projectName}"...`);
+  logger.info(`<⚡> ["${compileOptions.projectName}"] Compiling...`);
 
   const result = program.emit(undefined, undefined, undefined, undefined, { before: [getCopyPackageToAppTransformerFactory(context)] });
 
@@ -23,7 +23,7 @@ const compileTypeScript = (compileOptions: CompileOptions, context: ExecutorCont
     return { success: false };
   }
 
-  logger.info(`<⚡> Azure Functions build is ready for project "${compileOptions.projectName}".`);
+  logger.info(`<⚡> ["${compileOptions.projectName}"] Build is ready.`);
   return { success: true };
 };
 
