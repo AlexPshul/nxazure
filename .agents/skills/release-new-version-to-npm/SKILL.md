@@ -64,7 +64,7 @@ Do not default to `npm publish` from the local machine unless the user explicitl
 
 4. Rebuild and validate the publishable package.
    - Run `npm run build:all` to build the entire repo, which produces `dist/`
-   - Run `npm run test`
+   - No need to run the tests. The GitHub Action is taking care of this and will block the release if tests fail, so running them locally is not necessary for validation purposes
    - Confirm `dist/package.json` now carries the same version as the root package
    - Do not hand-edit `dist/package.json`; it is produced by the build step
 
