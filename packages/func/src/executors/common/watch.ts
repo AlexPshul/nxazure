@@ -47,7 +47,7 @@ const reportProgress = async (
       if (errors > 0) console.log(color.error(`[${projectName}]`), formatDiagnosticsWithColorAndContext([diagnostic], formatHost));
       else {
         await injectPathRegistration(outputPath, appRoot);
-        await copyAssetsIfConfigured(executorContext, outputPath);
+        await copyAssetsIfConfigured(executorContext, appRoot, outputPath);
         console.log(color.info(`[${projectName}]`), formatDiagnosticsWithColorAndContext([diagnostic], formatHost));
         onBuild?.();
       }

@@ -1,16 +1,26 @@
 import { ExecutorContext } from '@nx/devkit';
+import path from 'path';
 import { AssetGlobPattern, BuildExecutorSchema } from '../build/schema';
 
-type CopyAssetsFn = (
-  options: {
-    outputPath: string;
-    assets: (string | AssetGlobPattern)[];
-    includeIgnoredAssetFiles?: boolean;
-  },
-  context: ExecutorContext,
-) => Promise<{ success?: boolean; stop?: () => void }>;
+type CopyAssetsResult = { success?: boolean; stop?: () => void };
+type FileEvent = { type: 'create' | 'update' | 'delete'; src: string; dest: string };
+type DefaultFileEventHandler = (events: FileEvent[]) => void;
+type CopyAssetsHandler = {
+  processAllAssetsOnce: () => Promise<void>;
+};
+type CopyAssetsHandlerFactory = new (options: {
+  projectDir: string;
+  rootDir: string;
+  outputDir: string;
+  assets: (string | AssetGlobPattern)[];
+  callback?: (events: FileEvent[]) => void;
+  includeIgnoredFiles?: boolean;
+}) => CopyAssetsHandler;
 
-let copyAssetsPromise: Promise<CopyAssetsFn> | null = null;
+let nxJsAssetsPromise: Promise<{
+  CopyAssetsHandler: CopyAssetsHandlerFactory;
+  defaultFileEventHandler: DefaultFileEventHandler;
+}> | null = null;
 
 const getBuildTargetOptions = (context: ExecutorContext): BuildExecutorSchema => {
   const project = context.projectsConfigurations?.projects[context.projectName];
@@ -34,15 +44,18 @@ const isMissingNxJsError = (error: unknown) => {
   );
 };
 
-const loadCopyAssets = async () => {
-  if (!copyAssetsPromise) {
-    copyAssetsPromise = import('@nx/js').then(module => module.copyAssets as CopyAssetsFn);
+const loadNxJsAssets = async () => {
+  if (!nxJsAssetsPromise) {
+    nxJsAssetsPromise = import('@nx/js/src/utils/assets/copy-assets-handler').then(module => ({
+      CopyAssetsHandler: module.CopyAssetsHandler as CopyAssetsHandlerFactory,
+      defaultFileEventHandler: module.defaultFileEventHandler as DefaultFileEventHandler,
+    }));
   }
 
   try {
-    return await copyAssetsPromise;
+    return await nxJsAssetsPromise;
   } catch (error) {
-    copyAssetsPromise = null;
+    nxJsAssetsPromise = null;
 
     if (isMissingNxJsError(error)) {
       throw new Error(
@@ -56,17 +69,63 @@ const loadCopyAssets = async () => {
   }
 };
 
-export const copyAssetsIfConfigured = async (context: ExecutorContext, outputPath: string) => {
+const getWorkspaceDistRoot = (workspaceRoot: string, outputPath: string) => path.resolve(workspaceRoot, outputPath);
+
+const runCopyAssets = async (
+  CopyAssetsHandler: CopyAssetsHandlerFactory,
+  options: {
+    projectDir: string;
+    rootDir: string;
+    outputDir: string;
+    assets: (string | AssetGlobPattern)[];
+    includeIgnoredFiles?: boolean;
+    callback?: (events: FileEvent[]) => void;
+  },
+) => {
+  if (options.assets.length === 0) return;
+
+  const assetHandler = new CopyAssetsHandler(options);
+  await assetHandler.processAllAssetsOnce();
+};
+
+const getStringAssetCallback = (workspaceRoot: string, distRoot: string, defaultFileEventHandler: DefaultFileEventHandler) => {
+  return (events: FileEvent[]) =>
+    defaultFileEventHandler(
+      events.map(event => ({
+        ...event,
+        dest: path.join(distRoot, path.relative(workspaceRoot, event.src)),
+      })),
+    );
+};
+
+export const copyAssetsIfConfigured = async (
+  _context: ExecutorContext,
+  appRoot: string,
+  outputPath: string,
+): Promise<CopyAssetsResult | void> => {
+  const context = _context;
   const buildOptions = getBuildTargetOptions(context);
   if (!hasAssets(buildOptions)) return;
 
-  const copyAssets = await loadCopyAssets();
-  await copyAssets(
-    {
-      outputPath,
-      assets: buildOptions.assets,
-      includeIgnoredAssetFiles: buildOptions.includeIgnoredAssetFiles,
-    },
-    context,
-  );
+  const distRoot = getWorkspaceDistRoot(context.root, outputPath);
+  const stringAssets = buildOptions.assets.filter((asset): asset is string => typeof asset === 'string');
+  const objectAssets = buildOptions.assets.filter((asset): asset is AssetGlobPattern => typeof asset !== 'string');
+  const { CopyAssetsHandler, defaultFileEventHandler } = await loadNxJsAssets();
+
+  await runCopyAssets(CopyAssetsHandler, {
+    projectDir: appRoot,
+    rootDir: context.root,
+    outputDir: distRoot,
+    assets: stringAssets,
+    includeIgnoredFiles: buildOptions.includeIgnoredAssetFiles,
+    callback: getStringAssetCallback(context.root, distRoot, defaultFileEventHandler),
+  });
+  await runCopyAssets(CopyAssetsHandler, {
+    projectDir: appRoot,
+    rootDir: context.root,
+    outputDir: distRoot,
+    assets: objectAssets,
+    includeIgnoredFiles: buildOptions.includeIgnoredAssetFiles,
+    callback: defaultFileEventHandler,
+  });
 };

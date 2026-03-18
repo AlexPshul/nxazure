@@ -34,7 +34,7 @@ export const build = async (context: ExecutorContext) => {
   if (!success) return success;
 
   await injectPathRegistration(options.outputPath, appRoot);
-  await copyAssetsIfConfigured(context, options.outputPath);
+  await copyAssetsIfConfigured(context, appRoot, options.outputPath);
 
   return success;
 };

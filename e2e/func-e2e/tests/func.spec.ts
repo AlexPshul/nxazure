@@ -1,6 +1,4 @@
 import { NxJsonConfiguration } from '@nx/devkit';
-import fs from 'fs';
-import path from 'path';
 import {
   ensureNxProject,
   readJson,
@@ -11,6 +9,8 @@ import {
   uniq,
   updateFile,
 } from '@nx/plugin/testing';
+import fs from 'fs';
+import path from 'path';
 
 const lib1 = 'lvl1lib';
 const lib2 = 'lvl2lib';
@@ -64,7 +64,6 @@ return ${lib2}();
 
   const checkTheThing = async (project: string, directory: string) => {
     const func = 'hello';
-    const projectRoot = tmpProjPath(directory);
 
     await runNxCommandAsync(`g @nxazure/func:init ${project} --directory=${directory}`);
     await runNxCommandAsync(`g @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
@@ -99,24 +98,33 @@ app.http('hello', {
 
     projectConfig.targets.build.options ??= {};
     projectConfig.targets.build.options.assets = [
-      `${directory}/README.md`,
+      `README.md`,
       `${directory}/prompts/**/*.md`,
       {
         input: `${directory}/static`,
         glob: '**/*.json',
         output: 'static-assets',
       },
+      {
+        input: `${directory}/scoped-static`,
+        glob: '**/*.json',
+        output: `${directory}/static-assets`,
+      },
     ];
 
     updateFile(projectJsonPath, JSON.stringify(projectConfig, null, 2));
 
+    const projectRoot = tmpProjPath(directory);
+
     fs.mkdirSync(path.join(projectRoot, 'prompts', 'nested'), { recursive: true });
     fs.mkdirSync(path.join(projectRoot, 'static', 'configs'), { recursive: true });
-    fs.writeFileSync(path.join(projectRoot, 'README.md'), '# Asset copy');
+    fs.mkdirSync(path.join(projectRoot, 'scoped-static', 'configs'), { recursive: true });
     fs.writeFileSync(path.join(projectRoot, 'prompts', 'welcome.md'), 'prompt root');
     fs.writeFileSync(path.join(projectRoot, 'prompts', 'nested', 'follow-up.md'), 'prompt nested');
     fs.writeFileSync(path.join(projectRoot, 'static', 'app.json'), '{"name":"func"}');
     fs.writeFileSync(path.join(projectRoot, 'static', 'configs', 'env.json'), '{"env":"test"}');
+    fs.writeFileSync(path.join(projectRoot, 'scoped-static', 'app.json'), '{"name":"func-scoped"}');
+    fs.writeFileSync(path.join(projectRoot, 'scoped-static', 'configs', 'env.json'), '{"env":"scoped-test"}');
 
     console.log('Running build...');
     try {
@@ -125,10 +133,12 @@ app.http('hello', {
 
       expect(buildResult.stdout).toContain(`<⚡> Azure Functions build is ready for project "${project}".`);
       expect(fs.existsSync(path.join(projectRoot, 'dist', 'README.md'))).toBe(true);
-      expect(fs.existsSync(path.join(projectRoot, 'dist', 'prompts', 'welcome.md'))).toBe(true);
-      expect(fs.existsSync(path.join(projectRoot, 'dist', 'prompts', 'nested', 'follow-up.md'))).toBe(true);
+      expect(fs.existsSync(path.join(projectRoot, 'dist', directory, 'prompts', 'welcome.md'))).toBe(true);
+      expect(fs.existsSync(path.join(projectRoot, 'dist', directory, 'prompts', 'nested', 'follow-up.md'))).toBe(true);
       expect(fs.existsSync(path.join(projectRoot, 'dist', 'static-assets', 'app.json'))).toBe(true);
       expect(fs.existsSync(path.join(projectRoot, 'dist', 'static-assets', 'configs', 'env.json'))).toBe(true);
+      expect(fs.existsSync(path.join(projectRoot, 'dist', directory, 'static-assets', 'app.json'))).toBe(true);
+      expect(fs.existsSync(path.join(projectRoot, 'dist', directory, 'static-assets', 'configs', 'env.json'))).toBe(true);
     } catch (e) {
       console.error('Build failed with error: ', e);
       throw e;
