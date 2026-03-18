@@ -14,6 +14,7 @@ jest.mock('@nx/devkit', () => {
 });
 
 const supportedTemplates = [
+  ['Azure Blob Storage trigger', 'Blob', 'blob'],
   ['Azure Cosmos DB trigger', 'CosmosDB', 'cosmos-db'],
   ['Durable Functions entity', 'DurableFunctionsEntity', 'durable-functions-entity'],
   ['Durable Functions orchestrator', 'DurableFunctionsOrchestrator', 'durable-functions-orchestrator'],
