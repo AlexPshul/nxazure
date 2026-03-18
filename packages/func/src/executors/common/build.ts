@@ -1,6 +1,7 @@
 import { ExecutorContext, logger } from '@nx/devkit';
 import fs from 'fs';
 import ts from 'typescript';
+import { copyAssetsIfConfigured } from './copy-assets';
 import { getCopyPackageToAppTransformerFactory } from './get-copy-package-to-app-transformer-factory';
 import { injectPathRegistration } from './inject-path-registration';
 import { prepareBuild } from './prepare-build';
@@ -30,8 +31,10 @@ export const build = async (context: ExecutorContext) => {
   const { appRoot, options } = prepareBuild(context);
 
   const { success } = compileTypeScript(options, context);
+  if (!success) return success;
 
   await injectPathRegistration(options.outputPath, appRoot);
+  await copyAssetsIfConfigured(context, options.outputPath);
 
   return success;
 };

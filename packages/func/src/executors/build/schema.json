@@ -9,7 +9,55 @@
       "type": "string",
       "description": "Path to the tsconfig file to use for the build relative to the project root.",
       "default": "tsconfig.json"
+    },
+    "assets": {
+      "type": "array",
+      "description": "List of static assets.",
+      "default": [],
+      "items": {
+        "$ref": "#/definitions/assetPattern"
+      }
+    },
+    "includeIgnoredAssetFiles": {
+      "type": "boolean",
+      "description": "Include files that are ignored by .gitignore and .nxignore when copying assets.",
+      "default": false
     }
   },
-  "required": []
+  "required": [],
+  "definitions": {
+    "assetPattern": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "glob": {
+              "type": "string",
+              "description": "The pattern to match."
+            },
+            "input": {
+              "type": "string",
+              "description": "The input directory path in which to apply 'glob'. Defaults to the project root."
+            },
+            "ignore": {
+              "description": "An array of globs to ignore.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "output": {
+              "type": "string",
+              "description": "Path within the output."
+            }
+          },
+          "additionalProperties": false,
+          "required": ["glob", "input", "output"]
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  }
 }

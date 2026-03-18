@@ -10,6 +10,7 @@ import {
   sys,
 } from 'typescript';
 import { color } from '../../common';
+import { copyAssetsIfConfigured } from './copy-assets';
 import { getCopyPackageToAppTransformerFactory } from './get-copy-package-to-app-transformer-factory';
 import { injectPathRegistration } from './inject-path-registration';
 import { prepareBuild } from './prepare-build';
@@ -26,18 +27,15 @@ const reportErrorDiagnostics = (projectName: string, diagnostic: Diagnostic, ext
   externalOnError?.();
 };
 
-type ProgressContext = {
-  projectName: string;
-  appRoot: string;
-  outputPath: string;
-};
+type ProgressContext = { executorContext: ExecutorContext; appRoot: string; outputPath: string };
 
 const reportProgress = async (
-  { appRoot, outputPath, projectName }: ProgressContext,
+  { executorContext, appRoot, outputPath }: ProgressContext,
   diagnostic: Diagnostic,
   errors: number,
   onBuild?: () => void,
 ) => {
+  const projectName = executorContext.projectName;
   switch (diagnostic.code) {
     case 6031: // When the build watch starts (only the first time) we delete the output folder
       fs.rmSync(outputPath, { recursive: true, force: true });
@@ -49,6 +47,7 @@ const reportProgress = async (
       if (errors > 0) console.log(color.error(`[${projectName}]`), formatDiagnosticsWithColorAndContext([diagnostic], formatHost));
       else {
         await injectPathRegistration(outputPath, appRoot);
+        await copyAssetsIfConfigured(executorContext, outputPath);
         console.log(color.info(`[${projectName}]`), formatDiagnosticsWithColorAndContext([diagnostic], formatHost));
         onBuild?.();
       }
@@ -59,11 +58,7 @@ const reportProgress = async (
 export const watch = async (context: ExecutorContext, onBuild?: () => void, onError?: () => void) => {
   const { appRoot, options } = prepareBuild(context);
 
-  const progressContext: ProgressContext = {
-    projectName: context.projectName,
-    appRoot,
-    outputPath: options.outputPath,
-  };
+  const progressContext: ProgressContext = { executorContext: context, appRoot, outputPath: options.outputPath };
 
   const config = readTsConfig(options.tsConfig);
 

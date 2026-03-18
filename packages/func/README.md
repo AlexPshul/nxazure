@@ -70,6 +70,68 @@ nx start my-new-app
 
 <br/>
 
+## Assets
+
+The build executor supports the standard Nx-style `assets` option on the app's `build` target.
+If you use this feature, install the optional peer dependency first:
+
+```bash
+npm install -D @nx/js
+```
+
+Example direct copy:
+
+```json
+{
+  "targets": {
+    "build": {
+      "executor": "@nxazure/func:build",
+      "options": {
+        "assets": ["apps/my-func/README.md"]
+      }
+    }
+  }
+}
+```
+
+Example wildcard copy:
+
+```json
+{
+  "targets": {
+    "build": {
+      "executor": "@nxazure/func:build",
+      "options": {
+        "assets": ["apps/my-func/prompts/**/*.md"]
+      }
+    }
+  }
+}
+```
+
+Example object-form asset pattern:
+
+```json
+{
+  "targets": {
+    "build": {
+      "executor": "@nxazure/func:build",
+      "options": {
+        "assets": [
+          {
+            "input": "apps/my-func/static",
+            "glob": "**/*.json",
+            "output": "static"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+<br/>
+
 ## Known possible issues
 
 1. If after creation the build is failing, try updating `@types/node` and/or `typescript` versions.
