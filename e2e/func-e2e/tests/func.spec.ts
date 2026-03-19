@@ -131,7 +131,7 @@ app.http('hello', {
       const buildResult = await runNxCommandAsync(`build ${project}`);
       if (buildResult.stderr) console.error('Error: ', buildResult.stderr);
 
-      expect(buildResult.stdout).toContain(`<⚡> Azure Functions build is ready for project "${project}".`);
+      expect(buildResult.stdout).toContain(`<⚡> ["${project}"] Build is ready.`);
       expect(fs.existsSync(path.join(projectRoot, 'dist', 'README.md'))).toBe(true);
       expect(fs.existsSync(path.join(projectRoot, 'dist', directory, 'prompts', 'welcome.md'))).toBe(true);
       expect(fs.existsSync(path.join(projectRoot, 'dist', directory, 'prompts', 'nested', 'follow-up.md'))).toBe(true);
