@@ -14,15 +14,7 @@ import {
 import fs, { readFileSync } from 'fs';
 import path from 'path';
 import { CompilerOptions } from 'typescript';
-import {
-  color,
-  FUNC_PACKAGE_NAME,
-  GLOBAL_NAME,
-  registrationFileName,
-  TS_CONFIG_BASE_FILE,
-  TS_CONFIG_BUILD_FILE,
-  TS_CONFIG_WORKSPACE_FILE,
-} from '../../common';
+import { color, FUNC_PACKAGE_NAME, GLOBAL_NAME, registrationFileName, TS_CONFIG_BASE_FILE, TS_CONFIG_WORKSPACE_FILE } from '../../common';
 import { createTempFolderWithInit } from '../common';
 import { InitGeneratorSchema } from './schema';
 
@@ -128,6 +120,7 @@ const createTsConfigFiles = (tree: Tree, { appRoot, strict }: NormalizedOptions)
 
   const compilerOptions = {
     module: 'commonjs',
+    outDir: 'dist',
     target: 'es6',
     sourceMap: true,
     strict,
@@ -135,9 +128,6 @@ const createTsConfigFiles = (tree: Tree, { appRoot, strict }: NormalizedOptions)
 
   const workspaceTsConfig = { extends: `${relativePathToRoot}${TS_CONFIG_BASE_FILE}`, compilerOptions };
   tree.write(path.posix.join(appRoot, TS_CONFIG_WORKSPACE_FILE), JSON.stringify(workspaceTsConfig, null, 2));
-
-  const buildTsConfig = { compilerOptions: { ...compilerOptions, outDir: 'dist', resolveJsonModule: true } };
-  tree.write(path.posix.join(appRoot, TS_CONFIG_BUILD_FILE), JSON.stringify(buildTsConfig, null, 2));
 };
 
 const updateBaseTsConfig = (tree: Tree) => {

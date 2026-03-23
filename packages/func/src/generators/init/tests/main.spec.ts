@@ -77,24 +77,18 @@ describe.each([
 
     const tsconfigObj = JSON.parse(tsconfig?.toString() || '{}');
     expect(tsconfigObj).toHaveProperty('extends', `${'../'.repeat(testArgs.sublevelFromRoot)}tsconfig.base.json`);
+    expect(tsconfigObj).toHaveProperty('compilerOptions.outDir', 'dist');
     expect(tsconfigObj).toHaveProperty('compilerOptions.module', 'commonjs');
     expect(tsconfigObj).toHaveProperty('compilerOptions.target', 'es6');
     expect(tsconfigObj).toHaveProperty('compilerOptions.sourceMap', true);
     expect(tsconfigObj).toHaveProperty('compilerOptions.strict', true);
   });
 
-  it('Build TS config file', () => {
+  it('Does not create build TS config file', () => {
+    // In previous versions, this file was generated to the disk.
+    // This test is to make sure it's not added by accident again
     const tsconfig = appTree.read(`${testArgs.directory}/tsconfig.build.json`);
-    expect(tsconfig).toBeDefined();
-
-    const tsconfigObj = JSON.parse(tsconfig?.toString() || '{}');
-    expect(tsconfigObj).not.toHaveProperty('extends');
-    expect(tsconfigObj).toHaveProperty('compilerOptions.outDir', 'dist');
-    expect(tsconfigObj).toHaveProperty('compilerOptions.resolveJsonModule', true);
-    expect(tsconfigObj).toHaveProperty('compilerOptions.module', 'commonjs');
-    expect(tsconfigObj).toHaveProperty('compilerOptions.target', 'es6');
-    expect(tsconfigObj).toHaveProperty('compilerOptions.sourceMap', true);
-    expect(tsconfigObj).toHaveProperty('compilerOptions.strict', true);
+    expect(tsconfig).toBeNull();
   });
 
   it('Base TS config file', () => {

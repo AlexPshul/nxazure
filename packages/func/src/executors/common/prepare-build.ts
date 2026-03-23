@@ -1,11 +1,11 @@
-import { ExecutorContext, offsetFromRoot, readJsonFile, writeJsonFile } from '@nx/devkit';
-import { execSync } from 'child_process';
+import { ExecutorContext, offsetFromRoot } from '@nx/devkit';
 import fs from 'fs';
 import path from 'path';
-import ts, { CompilerOptions } from 'typescript';
-import { TS_CONFIG_BASE_FILE, TS_CONFIG_BUILD_FILE } from '../../common';
+import ts from 'typescript';
+import { TS_CONFIG_WORKSPACE_FILE } from '../../common';
+import { formatDiagnostics } from './format-diagnostics';
 
-type TsConfig = { compilerOptions: CompilerOptions };
+export type CompileOptions = { outputPath: string; parsedTsConfig: ts.ParsedCommandLine; projectName: string; projectRoot: string };
 
 const getAllTsFiles = (dir: string, files: string[] = []): string[] => {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -19,20 +19,47 @@ const getAllTsFiles = (dir: string, files: string[] = []): string[] => {
   return files;
 };
 
-const processConfig = (appRoot: string, cwd: string, relativePathToRoot: string) => {
-  const configPath = path.join(appRoot, TS_CONFIG_BUILD_FILE);
-  const config = readJsonFile<TsConfig>(configPath);
+const readTsConfig = (tsConfigPath: string) => {
+  const parsedConfig = ts.getParsedCommandLineOfConfigFile(
+    tsConfigPath,
+    {},
+    {
+      ...ts.sys,
+      onUnRecoverableConfigFileDiagnostic: diagnostic => {
+        throw new Error(formatDiagnostics([diagnostic]));
+      },
+    },
+  );
 
-  const baseConfigPath = path.join(cwd, TS_CONFIG_BASE_FILE);
-  const baseConfig = readJsonFile<TsConfig>(baseConfigPath);
+  if (!parsedConfig) {
+    throw new Error(`Could not parse TypeScript config at ${tsConfigPath}.`);
+  }
 
-  if (baseConfig.compilerOptions.paths) {
+  return parsedConfig;
+};
+
+const processConfig = (appRoot: string, relativePathToRoot: string) => {
+  const sourceTsConfigPath = path.join(appRoot, TS_CONFIG_WORKSPACE_FILE);
+  const parsedConfig = readTsConfig(sourceTsConfigPath);
+  const config: ts.ParsedCommandLine = {
+    ...parsedConfig,
+    errors: [...parsedConfig.errors],
+    fileNames: [...parsedConfig.fileNames],
+    options: { ...parsedConfig.options },
+    raw: parsedConfig.raw ? { ...parsedConfig.raw } : parsedConfig.raw,
+  };
+  const basePaths = parsedConfig.options.paths;
+
+  if (basePaths) {
     const tsFiles = getAllTsFiles(appRoot);
-    const program = ts.createProgram(tsFiles, { paths: baseConfig.compilerOptions.paths });
+    const program = ts.createProgram(tsFiles, {
+      ...parsedConfig.options,
+      paths: basePaths,
+    });
     const checker = program.getTypeChecker();
 
-    const baseConfigPathsKeys = new Set(Object.keys(baseConfig.compilerOptions.paths));
-    config.compilerOptions.paths = {};
+    const baseConfigPathsKeys = new Set(Object.keys(basePaths));
+    config.options.paths = {};
 
     const visited = new Set<string>();
     const visitFile = (file: string | ts.SourceFile) => {
@@ -44,16 +71,17 @@ const processConfig = (appRoot: string, cwd: string, relativePathToRoot: string)
 
       ts.forEachChild(sourceFile, node => {
         if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier) {
-          // recordModuleAndGoDeeper(node.moduleSpecifier, sourceFile);
           const module = node.moduleSpecifier.getText(sourceFile).replace(/['"]/g, '');
-          if (baseConfigPathsKeys.has(module) && !config.compilerOptions.paths[module])
-            config.compilerOptions.paths[module] = baseConfig.compilerOptions.paths[module].map(path => `${relativePathToRoot}${path}`);
+          if (baseConfigPathsKeys.has(module) && !config.options.paths?.[module]) {
+            config.options.paths ??= {};
+            config.options.paths[module] = basePaths[module].map(aliasPath => `${relativePathToRoot}${aliasPath}`);
+          }
 
           const symbol = checker.getSymbolAtLocation(node.moduleSpecifier);
           if (symbol?.declarations) {
             for (const declaration of symbol.declarations) {
-              const sourceFile = declaration.getSourceFile();
-              if (!sourceFile?.fileName.includes('/node_modules/')) visitFile(sourceFile);
+              const declarationSourceFile = declaration.getSourceFile();
+              if (!declarationSourceFile?.fileName.includes(`${path.sep}node_modules${path.sep}`)) visitFile(declarationSourceFile);
             }
           }
         }
@@ -63,25 +91,28 @@ const processConfig = (appRoot: string, cwd: string, relativePathToRoot: string)
     tsFiles.forEach(visitFile);
   }
 
-  writeJsonFile(configPath, config);
-  execSync(`npx prettier ${configPath} -w`);
-
-  return { config, configPath };
+  return config;
 };
 
 export const prepareBuild = (context: ExecutorContext) => {
   const appRoot = context.projectsConfigurations?.projects[context.projectName].root;
   const relativePathToRoot = offsetFromRoot(appRoot);
+  const parsedTsConfig = processConfig(appRoot, relativePathToRoot);
+  const outputPath = path.join(appRoot, parsedTsConfig.options.outDir || 'dist');
 
-  const { config, configPath } = processConfig(appRoot, context.cwd, relativePathToRoot);
+  parsedTsConfig.options.outDir = outputPath;
+  parsedTsConfig.options.noEmitOnError = true;
+  parsedTsConfig.options.rootDir = '.';
 
-  const outputPath = path.join(appRoot, config.compilerOptions.outDir);
+  if (parsedTsConfig.options.incremental && !parsedTsConfig.options.tsBuildInfoFile) {
+    parsedTsConfig.options.tsBuildInfoFile = path.join(outputPath, 'tsconfig.tsbuildinfo');
+  }
 
-  const options = {
+  const options: CompileOptions = {
     outputPath,
+    parsedTsConfig,
     projectName: context.projectName,
     projectRoot: '.',
-    tsConfig: configPath,
   };
 
   return { appRoot, options };

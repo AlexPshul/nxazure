@@ -14,7 +14,6 @@ import { copyAssetsIfConfigured } from './copy-assets';
 import { getCopyPackageToAppTransformerFactory } from './get-copy-package-to-app-transformer-factory';
 import { injectPathRegistration } from './inject-path-registration';
 import { prepareBuild } from './prepare-build';
-import { readTsConfig } from './utils';
 
 const formatHost: FormatDiagnosticsHost = {
   getCanonicalFileName: path => path,
@@ -57,14 +56,12 @@ const reportProgress = async (
 
 export const watch = async (context: ExecutorContext, onBuild?: () => void, onError?: () => void) => {
   const { appRoot, options } = prepareBuild(context);
-
   const progressContext: ProgressContext = { executorContext: context, appRoot, outputPath: options.outputPath };
-
-  const config = readTsConfig(options.tsConfig);
+  const config = options.parsedTsConfig;
 
   const host = createWatchCompilerHost(
     config.fileNames,
-    { ...config.options, ...options, noEmitOnError: true },
+    config.options,
     sys,
     createSemanticDiagnosticsBuilderProgram,
     diagnostic => reportErrorDiagnostics(context.projectName, diagnostic, onError),

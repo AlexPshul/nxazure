@@ -2,14 +2,14 @@ import { ExecutorContext, logger } from '@nx/devkit';
 import fs from 'fs';
 import ts from 'typescript';
 import { copyAssetsIfConfigured } from './copy-assets';
+import { formatDiagnostics } from './format-diagnostics';
 import { getCopyPackageToAppTransformerFactory } from './get-copy-package-to-app-transformer-factory';
 import { injectPathRegistration } from './inject-path-registration';
-import { prepareBuild } from './prepare-build';
-import { CompileOptions, formatDiagnostics, getNormalizedTsConfig } from './utils';
+import { CompileOptions, prepareBuild } from './prepare-build';
 
 // Adapted from Nx's TypeScript compilation utility for Azure Functions builds.
 const compileTypeScript = (compileOptions: CompileOptions, context: ExecutorContext) => {
-  const tsConfig = getNormalizedTsConfig(compileOptions);
+  const tsConfig = compileOptions.parsedTsConfig;
   fs.rmSync(compileOptions.outputPath, { recursive: true, force: true });
   const host = ts.createCompilerHost(tsConfig.options);
   const program = ts.createProgram({ rootNames: tsConfig.fileNames, options: tsConfig.options, host });

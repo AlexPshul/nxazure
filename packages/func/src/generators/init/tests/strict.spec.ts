@@ -29,13 +29,10 @@ describe('Check strict option', () => {
     async () => {
       await generator(appTree, { ...partialOptions, strict: true });
       const workspaceTsConfig = appTree.read(`${directory}/tsconfig.json`);
-      const buildTsConfig = appTree.read(`${directory}/tsconfig.build.json`);
 
       const workspaceTsConfigObj = JSON.parse(workspaceTsConfig?.toString() || '{}');
-      const buildTsConfigObj = JSON.parse(buildTsConfig?.toString() || '{}');
 
       expect(workspaceTsConfigObj).toHaveProperty('compilerOptions.strict', true);
-      expect(buildTsConfigObj).toHaveProperty('compilerOptions.strict', true);
     },
     TEST_TIMEOUT,
   );
@@ -45,13 +42,10 @@ describe('Check strict option', () => {
     async () => {
       await generator(appTree, { ...partialOptions, strict: false });
       const workspaceTsConfig = appTree.read(`${directory}/tsconfig.json`);
-      const buildTsConfig = appTree.read(`${directory}/tsconfig.build.json`);
 
       const workspaceTsConfigObj = JSON.parse(workspaceTsConfig?.toString() || '{}');
-      const buildTsConfigObj = JSON.parse(buildTsConfig?.toString() || '{}');
 
       expect(workspaceTsConfigObj).toHaveProperty('compilerOptions.strict', false);
-      expect(buildTsConfigObj).toHaveProperty('compilerOptions.strict', false);
     },
     TEST_TIMEOUT,
   );
