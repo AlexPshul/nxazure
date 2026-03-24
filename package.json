@@ -27,6 +27,7 @@
     "@types/node": "20.19.9",
     "@typescript-eslint/eslint-plugin": "8.40.0",
     "@typescript-eslint/parser": "8.40.0",
+    "azure-functions-core-tools": "^4.x",
     "cross-env": "^7.0.3",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "10.0.0",
@@ -39,20 +40,19 @@
     "lint-staged": "^15.2.10",
     "nx": "22.5.4",
     "prettier": "~3.6.2",
+    "rimraf": "^5.0.0",
     "ts-jest": "29.4.0",
     "ts-node": "10.9.2",
     "tsc-files": "^1.1.4",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.40.0",
-    "azure-functions-core-tools": "^4.x",
-    "rimraf": "^5.0.0"
+    "typescript-eslint": "8.40.0"
   },
   "dependencies": {
+    "@azure/functions": "^4.11.2",
     "@swc/helpers": "0.5.18",
     "glob": "^11.0.0",
     "tree-kill": "^1.2.2",
-    "tslib": "^2.7.0",
-    "@azure/functions": "^4.0.0",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "tslib": "^2.7.0"
   }
 }
