@@ -8,6 +8,10 @@ tmp
 # dependencies
 node_modules
 
+# testing
+apps
+libs
+
 # IDEs and editors
 /.idea
 .project
