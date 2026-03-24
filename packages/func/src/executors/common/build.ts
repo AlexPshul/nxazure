@@ -10,7 +10,7 @@ import { CompileOptions, prepareBuild } from './prepare-build';
 // Adapted from Nx's TypeScript compilation utility for Azure Functions builds.
 const compileTypeScript = (compileOptions: CompileOptions, context: ExecutorContext) => {
   const tsConfig = compileOptions.parsedTsConfig;
-  fs.rmSync(compileOptions.outputPath, { recursive: true, force: true });
+  fs.rmSync(compileOptions.parsedTsConfig.options.outDir, { recursive: true, force: true });
   const host = ts.createCompilerHost(tsConfig.options);
   const program = ts.createProgram({ rootNames: tsConfig.fileNames, options: tsConfig.options, host });
 
@@ -33,8 +33,8 @@ export const build = async (context: ExecutorContext) => {
   const { success } = compileTypeScript(options, context);
   if (!success) return success;
 
-  await injectPathRegistration(options.outputPath, appRoot);
-  await copyAssetsIfConfigured(context, appRoot, options.outputPath);
+  await injectPathRegistration(options.parsedTsConfig.options.outDir, appRoot);
+  await copyAssetsIfConfigured(context, appRoot, options.parsedTsConfig.options.outDir);
 
   return success;
 };

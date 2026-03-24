@@ -56,7 +56,7 @@ const reportProgress = async (
 
 export const watch = async (context: ExecutorContext, onBuild?: () => void, onError?: () => void) => {
   const { appRoot, options } = prepareBuild(context);
-  const progressContext: ProgressContext = { executorContext: context, appRoot, outputPath: options.outputPath };
+  const progressContext: ProgressContext = { executorContext: context, appRoot, outputPath: options.parsedTsConfig.options.outDir };
   const config = options.parsedTsConfig;
 
   const host = createWatchCompilerHost(
