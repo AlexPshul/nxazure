@@ -119,10 +119,7 @@ const createTsConfigFiles = (tree: Tree, { appRoot, strict }: NormalizedOptions)
   const relativePathToRoot = offsetFromRoot(appRoot);
 
   const compilerOptions = {
-    module: 'commonjs',
     outDir: 'dist',
-    target: 'es6',
-    sourceMap: true,
     strict,
   };
 
@@ -143,14 +140,18 @@ const updateBaseTsConfig = (tree: Tree) => {
 
 const createProjectPackageJson = (tree: Tree, { appRoot }: NormalizedOptions, copyFromFolder: string) => {
   // This needs to be copied and dependencies + devDependencies removed
-  const sourcePackageJson = readJsonFile<{ dependencies: Record<string, string>; devDependencies: Record<string, string>; main: string }>(
-    path.posix.join(copyFromFolder, 'package.json'),
-  );
+  const sourcePackageJson = readJsonFile<{
+    dependencies: Record<string, string>;
+    devDependencies: Record<string, string>;
+    main: string;
+    type?: string;
+  }>(path.posix.join(copyFromFolder, 'package.json'));
 
   const azureFunctionsVersion = sourcePackageJson.dependencies['@azure/functions'];
   sourcePackageJson.dependencies = { ['@azure/functions']: azureFunctionsVersion };
   sourcePackageJson.devDependencies = {};
   sourcePackageJson.main = `dist/${appRoot}/src/functions/*.js`;
+  sourcePackageJson.type = 'module';
 
   tree.write(path.posix.join(appRoot, 'package.json'), JSON.stringify(sourcePackageJson, null, 2));
 };

@@ -78,9 +78,6 @@ describe.each([
     const tsconfigObj = JSON.parse(tsconfig?.toString() || '{}');
     expect(tsconfigObj).toHaveProperty('extends', `${'../'.repeat(testArgs.sublevelFromRoot)}tsconfig.base.json`);
     expect(tsconfigObj).toHaveProperty('compilerOptions.outDir', 'dist');
-    expect(tsconfigObj).toHaveProperty('compilerOptions.module', 'commonjs');
-    expect(tsconfigObj).toHaveProperty('compilerOptions.target', 'es6');
-    expect(tsconfigObj).toHaveProperty('compilerOptions.sourceMap', true);
     expect(tsconfigObj).toHaveProperty('compilerOptions.strict', true);
   });
 
@@ -114,6 +111,7 @@ describe.each([
 
     const packageJsonObj = JSON.parse(packageJson?.toString() || '{}');
     expect(packageJsonObj).toHaveProperty('main', `dist/${testArgs.directory}/src/functions/*.js`);
+    expect(packageJsonObj).toHaveProperty('type', 'module');
   });
 
   it('Auto generated files', () => {

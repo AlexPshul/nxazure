@@ -11,8 +11,7 @@ import {
 } from 'typescript';
 import { color } from '../../common';
 import { copyAssetsIfConfigured } from './copy-assets';
-import { getCopyPackageToAppTransformerFactory } from './get-copy-package-to-app-transformer-factory';
-import { injectPathRegistration } from './inject-path-registration';
+import { getRuntimeModuleTransformerFactory } from './get-runtime-module-transformer-factory';
 import { prepareBuild } from './prepare-build';
 
 const formatHost: FormatDiagnosticsHost = {
@@ -45,7 +44,6 @@ const reportProgress = async (
     default:
       if (errors > 0) console.log(color.error(`[${projectName}]`), formatDiagnosticsWithColorAndContext([diagnostic], formatHost));
       else {
-        await injectPathRegistration(outputPath, appRoot);
         await copyAssetsIfConfigured(executorContext, appRoot, outputPath);
         console.log(color.info(`[${projectName}]`), formatDiagnosticsWithColorAndContext([diagnostic], formatHost));
         onBuild?.();
@@ -74,7 +72,7 @@ export const watch = async (context: ExecutorContext, onBuild?: () => void, onEr
     builderProgram.emit = (targetSourceFile, writeFile, cancellationToken, emitOnlyDtsFiles, customTransformers) => {
       if (!customTransformers) customTransformers = { before: [] };
       if (!customTransformers.before) customTransformers.before = [];
-      customTransformers.before.push(getCopyPackageToAppTransformerFactory(context));
+      customTransformers.before.push(getRuntimeModuleTransformerFactory(context, builderProgram.getProgram()));
 
       return originalProgramEmit(targetSourceFile, writeFile, cancellationToken, emitOnlyDtsFiles, customTransformers);
     };

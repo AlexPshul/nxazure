@@ -1,17 +1,17 @@
 import { ExecutorContext } from '@nx/devkit';
 import path from 'path';
-import ts from 'typescript';
+import { getParsedCommandLineOfConfigFile, sys, type ParsedCommandLine } from 'typescript';
 import { TS_CONFIG_WORKSPACE_FILE } from '../../common';
 import { formatDiagnostics } from './format-diagnostics';
 
-export type CompileOptions = { parsedTsConfig: ts.ParsedCommandLine; projectName: string; projectRoot: string };
+export type CompileOptions = { parsedTsConfig: ParsedCommandLine; projectName: string; projectRoot: string };
 
 const readTsConfig = (tsConfigPath: string) => {
-  const parsedConfig = ts.getParsedCommandLineOfConfigFile(
+  const parsedConfig = getParsedCommandLineOfConfigFile(
     tsConfigPath,
     {},
     {
-      ...ts.sys,
+      ...sys,
       onUnRecoverableConfigFileDiagnostic: diagnostic => {
         throw new Error(formatDiagnostics([diagnostic]));
       },
@@ -28,7 +28,7 @@ const readTsConfig = (tsConfigPath: string) => {
 const processConfig = (appRoot: string) => {
   const sourceTsConfigPath = path.join(appRoot, TS_CONFIG_WORKSPACE_FILE);
   const parsedConfig = readTsConfig(sourceTsConfigPath);
-  const config: ts.ParsedCommandLine = {
+  const config: ParsedCommandLine = {
     ...parsedConfig,
     errors: [...parsedConfig.errors],
     fileNames: [...parsedConfig.fileNames],
