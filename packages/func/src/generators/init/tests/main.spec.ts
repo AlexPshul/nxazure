@@ -64,7 +64,6 @@ describe.each([
     expect(packageJson).toBeDefined();
 
     const packageJsonObj = JSON.parse(packageJson?.toString() || '{}');
-    expect(packageJsonObj).toHaveProperty('dependencies.tsconfig-paths');
     expect(packageJsonObj).toHaveProperty('dependencies.@azure/functions');
     expect(packageJsonObj).toHaveProperty('devDependencies.typescript');
     expect(packageJsonObj).toHaveProperty('devDependencies.azure-functions-core-tools');
@@ -117,6 +116,5 @@ describe.each([
   it('Auto generated files', () => {
     expect(appTree.exists(`${testArgs.directory}/host.json`)).toBeTruthy();
     expect(appTree.exists(`${testArgs.directory}/.funcignore`)).toBeTruthy();
-    expect(appTree.exists(`${testArgs.directory}/_registerPaths.ts`)).toBeTruthy();
   });
 });

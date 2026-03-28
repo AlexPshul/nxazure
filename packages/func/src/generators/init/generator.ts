@@ -14,7 +14,7 @@ import {
 import fs, { readFileSync } from 'fs';
 import path from 'path';
 import { CompilerOptions } from 'typescript';
-import { color, FUNC_PACKAGE_NAME, GLOBAL_NAME, registrationFileName, TS_CONFIG_BASE_FILE, TS_CONFIG_WORKSPACE_FILE } from '../../common';
+import { color, FUNC_PACKAGE_NAME, GLOBAL_NAME, TS_CONFIG_BASE_FILE, TS_CONFIG_WORKSPACE_FILE } from '../../common';
 import { createTempFolderWithInit } from '../common';
 import { InitGeneratorSchema } from './schema';
 
@@ -91,13 +91,10 @@ const updateWorkspacePackageJson = (tree: Tree, copyFromFolder: string) => {
     path.posix.join(copyFromFolder, 'package.json'),
   );
 
-  const additionalDependencies = { 'tsconfig-paths': '^4.2.0' };
-  const sourceDependencies = { ...sourcePackageJson.dependencies, ...additionalDependencies };
-
   updateJson(tree, 'package.json', json => {
     json.dependencies = json.dependencies || {};
-    Object.keys(sourceDependencies).forEach(key => {
-      json.dependencies[key] = json.dependencies[key] || sourceDependencies[key];
+    Object.keys(sourcePackageJson.dependencies).forEach(key => {
+      json.dependencies[key] = json.dependencies[key] || sourcePackageJson.dependencies[key];
     });
 
     json.devDependencies = json.devDependencies || {};
@@ -161,34 +158,6 @@ const copyFilesFromTemp = (tree: Tree, { appRoot }: NormalizedOptions, tempFolde
     const data = readFileSync(path.posix.join(tempFolder, fileName));
     tree.write(path.posix.join(appRoot, fileName), data);
   });
-};
-
-const createRegisterPathsFile = (tree: Tree, { appRoot }: NormalizedOptions) => {
-  const relativePathToRoot = offsetFromRoot(appRoot);
-  tree.write(
-    path.posix.join(appRoot, `${registrationFileName}.ts`),
-    `
-    import { register } from 'tsconfig-paths';
-    import * as tsConfig from '${relativePathToRoot}${TS_CONFIG_BASE_FILE}'; // eslint-disable-line @nx/enforce-module-boundaries
-    import { CompilerOptions } from 'typescript';
-
-    const compilerOptions = tsConfig.compilerOptions as unknown as CompilerOptions; // This is to avoid any problems with the typing system
-
-    if (compilerOptions.paths) {
-      const newPaths: Record<string, string[]> = Object.entries(
-        compilerOptions.paths
-      ).reduce((newPathsObj, [pathKey, oldPaths]: [string, string[]]) => {
-        newPathsObj[pathKey] = oldPaths.map((path) => path.replace(/.ts$/, '.js'));
-        return newPathsObj;
-      }, {} as Record<string, string[]>);
-
-      register({
-        baseUrl: 'dist',
-        paths: newPaths,
-      });
-    }
-    `,
-  );
 };
 
 const setupEslintrc = (tree: Tree, appRoot: string) => {
@@ -282,7 +251,6 @@ export default async function (tree: Tree, options: InitGeneratorSchema) {
     updateBaseTsConfig(tree);
     createProjectPackageJson(tree, normalizedOptions, tempProjectRoot);
     copyFilesFromTemp(tree, normalizedOptions, tempProjectRoot, staticFilesToCopy);
-    createRegisterPathsFile(tree, normalizedOptions);
     configureEslint(tree, normalizedOptions);
 
     await formatFiles(tree);

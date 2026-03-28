@@ -140,7 +140,7 @@ Example object-form asset pattern:
 
 ```js
   {
-    ignores: ['apps/**/dist', 'apps/**/_registerPaths.ts'],
+    ignores: ['apps/**/dist'],
   }
 ```
 
