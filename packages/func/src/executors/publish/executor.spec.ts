@@ -223,7 +223,9 @@ describe('publish executor', () => {
 
   beforeEach(() => {
     mockedBuild.mockImplementation(async (context, customTransformers) => {
-      const configuredProjectRoot = context.projectsConfigurations?.projects[context.projectName].root;
+      const projectName = context.projectName;
+      if (!projectName) throw new Error('Missing projectName in test context');
+      const configuredProjectRoot = context.projectsConfigurations?.projects[projectName]?.root;
       if (!configuredProjectRoot) {
         throw new Error('Missing project root in test context');
       }

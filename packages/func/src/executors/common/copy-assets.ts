@@ -23,13 +23,12 @@ let nxJsAssetsPromise: Promise<{
 }> | null = null;
 
 const getBuildTargetOptions = (context: ExecutorContext): BuildExecutorSchema => {
+  if (!context.projectName) return {};
   const project = context.projectsConfigurations?.projects[context.projectName];
   const buildTarget = project?.targets?.build;
 
   return (buildTarget?.options as BuildExecutorSchema | undefined) ?? {};
 };
-
-const hasAssets = (options: BuildExecutorSchema) => Array.isArray(options.assets) && options.assets.length > 0;
 
 const isMissingNxJsError = (error: unknown) => {
   if (!(error instanceof Error)) return false;
@@ -104,12 +103,12 @@ export const copyAssetsIfConfigured = async (
   outputPath: string,
 ): Promise<CopyAssetsResult | void> => {
   const context = _context;
-  const buildOptions = getBuildTargetOptions(context);
-  if (!hasAssets(buildOptions)) return;
+  const { assets, includeIgnoredAssetFiles } = getBuildTargetOptions(context);
+  if (!assets || assets.length === 0) return;
 
   const distRoot = getWorkspaceDistRoot(context.root, outputPath);
-  const stringAssets = buildOptions.assets.filter((asset): asset is string => typeof asset === 'string');
-  const objectAssets = buildOptions.assets.filter((asset): asset is AssetGlobPattern => typeof asset !== 'string');
+  const stringAssets = assets.filter((asset): asset is string => typeof asset === 'string');
+  const objectAssets = assets.filter((asset): asset is AssetGlobPattern => typeof asset !== 'string');
   const { CopyAssetsHandler, defaultFileEventHandler } = await loadNxJsAssets();
 
   await runCopyAssets(CopyAssetsHandler, {
@@ -117,7 +116,7 @@ export const copyAssetsIfConfigured = async (
     rootDir: context.root,
     outputDir: distRoot,
     assets: stringAssets,
-    includeIgnoredFiles: buildOptions.includeIgnoredAssetFiles,
+    includeIgnoredFiles: includeIgnoredAssetFiles,
     callback: getStringAssetCallback(context.root, distRoot, defaultFileEventHandler),
   });
   await runCopyAssets(CopyAssetsHandler, {
@@ -125,7 +124,7 @@ export const copyAssetsIfConfigured = async (
     rootDir: context.root,
     outputDir: distRoot,
     assets: objectAssets,
-    includeIgnoredFiles: buildOptions.includeIgnoredAssetFiles,
+    includeIgnoredFiles: includeIgnoredAssetFiles,
     callback: defaultFileEventHandler,
   });
 };

@@ -33,6 +33,7 @@ describe('update-eslint-config migration', () => {
     const projectFound = Array.from(getProjects(appTree)).find(([name]) => name === projectName);
     expect(projectFound).toBeDefined();
 
+    if (!projectFound) throw new Error(`Project "${projectName}" not found`);
     const [, project] = projectFound;
     const { ignorePatterns } = readJson<{ ignorePatterns: string[] }>(appTree, `${project.root}/.eslintrc.json`);
     expect(ignorePatterns).toEqual(['!**/*', 'dist', 'node_modules', '_registerPaths.ts']);

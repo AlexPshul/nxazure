@@ -23,6 +23,8 @@ const loadProcessEnvWithoutOverrides = (projectCwd: string) => {
 const executor: Executor<StartExecutorSchema> = async (options, context) => {
   const { port, disableWatch, additionalFlags } = options;
   const { projectsConfigurations, projectName, isVerbose, target } = context;
+  if (!projectName) throw new Error('Missing projectName in executor context.');
+  if (!target) throw new Error('Missing target in executor context.');
 
   const logger = new FuncLogger(projectName);
   let spawned: ChildProcessWithoutNullStreams | null = null;
@@ -33,7 +35,8 @@ const executor: Executor<StartExecutorSchema> = async (options, context) => {
 
     if (isVerbose) console.log(`Running ${target.executor} command: func ${params.join(' ')}.`);
 
-    const cwd = projectsConfigurations?.projects[projectName].root;
+    const cwd = projectsConfigurations?.projects[projectName]?.root;
+    if (!cwd) throw new Error(`Project "${projectName}" not found in workspace configuration.`);
     const noOverridesEnvVars = loadProcessEnvWithoutOverrides(cwd);
     spawned = spawn('func', params, { cwd, detached: false, shell: true, env: noOverridesEnvVars });
 
@@ -52,7 +55,7 @@ const executor: Executor<StartExecutorSchema> = async (options, context) => {
         if (!spawned) return;
 
         console.log(color.error(`[${projectName}]`), 'Shutting down...');
-        treeKill(spawned.pid);
+        if (spawned.pid != null) treeKill(spawned.pid);
         spawned = null;
       },
     );

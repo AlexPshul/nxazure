@@ -30,7 +30,7 @@ type ProgressContext = { executorContext: ExecutorContext; appRoot: string; outp
 const reportProgress = async (
   { executorContext, appRoot, outputPath }: ProgressContext,
   diagnostic: Diagnostic,
-  errors: number,
+  errors = 0,
   onBuild?: () => void,
 ) => {
   const projectName = executorContext.projectName;
@@ -62,7 +62,7 @@ export const watch = async (context: ExecutorContext, onBuild?: () => void, onEr
     config.options,
     sys,
     createSemanticDiagnosticsBuilderProgram,
-    diagnostic => reportErrorDiagnostics(context.projectName, diagnostic, onError),
+    diagnostic => reportErrorDiagnostics(options.projectName, diagnostic, onError),
     (diagnostic, _nl, _o, errors) => reportProgress(progressContext, diagnostic, errors, onBuild),
   );
 

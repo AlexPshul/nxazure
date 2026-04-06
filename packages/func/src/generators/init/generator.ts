@@ -5,6 +5,7 @@ import {
   installPackagesTask,
   names,
   offsetFromRoot,
+  ProjectConfiguration,
   readJsonFile,
   readProjectConfiguration,
   Tree,
@@ -43,7 +44,7 @@ const normalizeOptions = (tree: Tree, { name, directory, strict, tags }: InitGen
 
 const createProjectConfigurationFile = (tree: Tree, { appRoot, appNames: { name }, tags }: NormalizedOptions) => {
   const maxPort = Array.from(getProjects(tree).values())
-    .filter(project => !!project.name)
+    .filter((project): project is ProjectConfiguration & { name: string } => !!project.name)
     .map(project => readProjectConfiguration(tree, project.name))
     .filter(projectConfig => projectConfig.targets?.start?.executor === `${GLOBAL_NAME}/${FUNC_PACKAGE_NAME}:start`)
     .reduce((max, projectConfig) => Math.max(max, projectConfig.targets?.start?.options?.port || 0), 7070);
@@ -226,6 +227,7 @@ const configureEslint = (tree: Tree, { appRoot, appNames: { name, fileName } }: 
   else return;
 
   const projectConfig = readProjectConfiguration(tree, name);
+  projectConfig.targets ??= {};
   projectConfig.targets.lint = {
     executor: '@nx/eslint:lint',
     outputs: ['{options.outputFile}'],
