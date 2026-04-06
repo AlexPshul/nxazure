@@ -109,7 +109,8 @@ describe.each([
     expect(packageJson).toBeDefined();
 
     const packageJsonObj = JSON.parse(packageJson?.toString() || '{}');
-    expect(packageJsonObj).toHaveProperty('dependencies', {});
+    expect(packageJsonObj.dependencies).toBeDefined();
+    expect(packageJsonObj.dependencies['@azure/functions']).toBeDefined();
     expect(packageJsonObj).toHaveProperty('devDependencies', {});
     expect(packageJsonObj).toHaveProperty('main', `dist/${testArgs.directory}/src/functions/*.js`);
     expect(packageJsonObj).toHaveProperty('type', 'module');

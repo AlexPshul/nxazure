@@ -16,5 +16,6 @@
     "appsDir": "e2e",
     "libsDir": "packages"
   },
-  "defaultBase": "master"
+  "defaultBase": "master",
+  "analytics": false
 }
