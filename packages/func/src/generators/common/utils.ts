@@ -1,4 +1,4 @@
-import { Tree, names } from '@nx/devkit';
+import { names } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';
@@ -21,19 +21,4 @@ export const createTempFolderWithInit = (tempAppName: string) => {
   }
 
   return { tempFolder, tempProjectRoot: path.posix.join(tempFolder, tempAppName) };
-};
-
-export const copyToTempFolder = (tree: Tree, projectRootPath: string) => {
-  const tempFolder = fs.mkdtempSync(path.posix.join(getEnvTempDir(), `func-copy-`));
-
-  tree
-    .children(projectRootPath)
-    .filter(child => tree.isFile(path.posix.join(projectRootPath, child)))
-    .map(child => ({ filename: child, fullPath: path.posix.join(projectRootPath, child) }))
-    .map(({ filename, fullPath }) => ({ filename, content: tree.read(fullPath).toString() }))
-    .forEach(({ filename, content }) => fs.writeFileSync(path.posix.join(tempFolder, filename), content));
-
-  fs.mkdirSync(path.posix.join(tempFolder, 'src/functions'), { recursive: true });
-
-  return tempFolder;
 };

@@ -2,7 +2,7 @@ import { names, readProjectConfiguration, Tree } from '@nx/devkit';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { copyToTempFolder } from '../common';
+import { createTempFolderWithInit } from '../common';
 import { TemplateValues } from './consts';
 import { NewGeneratorSchema } from './schema';
 
@@ -54,15 +54,15 @@ export default async function (tree: Tree, options: NewGeneratorSchema) {
   const originalConsoleLog = console.log;
   if (options.silent) console.log = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function
 
-  const tempFolder = copyToTempFolder(tree, normalizedOptions.projectRoot);
+  const { tempFolder, tempProjectRoot } = createTempFolderWithInit(normalizedOptions.funcNames.fileName);
 
   try {
     let funcNewCommand = `func new -n ${normalizedOptions.funcNames.fileName} -t "${normalizedOptions.template}"`;
     if (normalizedOptions.authLevel) funcNewCommand += ` -a ${normalizedOptions.authLevel}`;
 
-    execSync(funcNewCommand, { cwd: tempFolder, stdio: 'ignore' });
+    execSync(funcNewCommand, { cwd: tempProjectRoot, stdio: 'ignore' });
 
-    copyFiles(tree, tempFolder, normalizedOptions.projectRoot, FUNCTIONS_FOLDER);
+    copyFiles(tree, tempProjectRoot, normalizedOptions.projectRoot, FUNCTIONS_FOLDER);
   } catch (e) {
     console.error(`Could not create ${normalizedOptions.funcNames.fileName} function with template ${normalizedOptions.template}.`, e);
     throw e;
