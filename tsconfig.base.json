@@ -5,20 +5,20 @@
     "strict": true,
     "sourceMap": true,
     "declaration": false,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "es2015",
     "module": "esnext",
     "lib": ["es2017", "dom"],
+    "isolatedModules": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "baseUrl": ".",
     "paths": {
-      "@nxazure/func": ["packages/func/src/index.ts"]
+      "@nxazure/func": ["./packages/func/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
