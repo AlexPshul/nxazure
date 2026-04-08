@@ -45,8 +45,7 @@ const isMissingNxJsError = (error: unknown) => {
 
 const loadNxJsAssets = async () => {
   if (!nxJsAssetsPromise) {
-    // @ts-expect-error — @nx/js is an optional peer dependency resolved at runtime
-    nxJsAssetsPromise = import('@nx/js/src/utils/assets/copy-assets-handler').then(module => ({
+    nxJsAssetsPromise = import('@nx/js/src/utils/assets/copy-assets-handler.js').then(module => ({
       CopyAssetsHandler: module.CopyAssetsHandler as CopyAssetsHandlerFactory,
       defaultFileEventHandler: module.defaultFileEventHandler as DefaultFileEventHandler,
     }));

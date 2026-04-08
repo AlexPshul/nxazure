@@ -27,7 +27,7 @@
     "@types/node": "20.19.9",
     "@typescript-eslint/eslint-plugin": "8.40.0",
     "@typescript-eslint/parser": "8.40.0",
-    "azure-functions-core-tools": "^4.x",
+
     "cross-env": "^7.0.3",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "10.0.0",

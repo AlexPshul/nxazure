@@ -28,6 +28,7 @@ describe('Project initialization and build', () => {
 
     console.log('Before all');
     ensureNxProject('@nxazure/func', 'dist/packages/func');
+    runCommand('git init && git add -A', {});
     console.log('After ensureNxProject');
 
     const nxConfig = readJson<NxJsonConfiguration>('nx.json');
@@ -65,13 +66,8 @@ return ${lib2}();
   const checkTheThing = async (project: string, directory: string) => {
     const func = 'hello';
 
-    const initResult = await runNxCommandAsync(`g @nxazure/func:init ${project} --directory=${directory}`);
-    console.log(`[init stdout] ${initResult.stdout}`);
-    if (initResult.stderr) console.error(`[init stderr] ${initResult.stderr}`);
-
-    const newResult = await runNxCommandAsync(`g @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
-    console.log(`[new stdout] ${newResult.stdout}`);
-    if (newResult.stderr) console.error(`[new stderr] ${newResult.stderr}`);
+    await runNxCommandAsync(`g @nxazure/func:init ${project} --directory=${directory}`);
+    await runNxCommandAsync(`g @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
     await runCommandAsync('npm i');
 
     const funcFilePath = `${directory}/src/functions/${func}.ts`;
@@ -181,9 +177,7 @@ app.http('hello', {
       const directory = `apps/${project}`;
       const projectRoot = tmpProjPath(directory);
 
-      const initResult3 = await runNxCommandAsync(`g @nxazure/func:init ${project} --directory=${directory}`);
-      console.log(`[test3 init stdout] ${initResult3.stdout}`);
-      if (initResult3.stderr) console.error(`[test3 init stderr] ${initResult3.stderr}`);
+      await runNxCommandAsync(`g @nxazure/func:init ${project} --directory=${directory}`);
 
       const projectJsonPath = `${directory}/project.json`;
       const projectConfig = readJson<Record<string, unknown>>(projectJsonPath) as {
@@ -206,7 +200,6 @@ app.http('hello', {
       try {
         const buildResult = await runNxCommandAsync(`build ${project}`, { silenceError: true });
         const output = `${buildResult.stdout}\n${buildResult.stderr}`;
-        console.log(`[test3 build output] ${output}`);
         expect(output).toContain('Asset copying for @nxazure/func requires the optional peer dependency "@nx/js"');
         expect(output).toContain('npm install -D @nx/js');
       } finally {
