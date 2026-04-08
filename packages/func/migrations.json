@@ -4,6 +4,21 @@
       "version": "1.1.1",
       "description": "Add ignore pattens for eslint config",
       "implementation": "./src/migrations/update-1-1-1/update-eslint-config"
+    },
+    "merge-tsconfig-build": {
+      "version": "2.0.0",
+      "description": "Merge tsconfig.build.json into tsconfig.json and ensure outDir is set",
+      "implementation": "./src/migrations/update-2-0-0/merge-tsconfig-build"
+    },
+    "remove-path-registration": {
+      "version": "2.0.0",
+      "description": "Remove _registerPaths.ts, clean eslint ignorePatterns, and remove tsconfig-paths dependency",
+      "implementation": "./src/migrations/update-2-0-0/remove-register-paths"
+    },
+    "clean-app-package-json": {
+      "version": "2.0.0",
+      "description": "Remove code-referenced dependencies from app package.json and add type: module",
+      "implementation": "./src/migrations/update-2-0-0/clean-app-package-json"
     }
   }
 }

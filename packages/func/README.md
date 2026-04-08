@@ -19,9 +19,10 @@ For **NX >= 20**, use @nxazure/func version **1.2.1** and higher
 
 1. [Quick Start](#quick-start)
 2. [Features](#features)
-3. [Known possible issues](#known-possible-issues)
-4. [Publish to Azure](#publish-to-azure)
-5. [Limitations](#limitations)
+3. [Migrating to v2](#migrating-to-v2)
+4. [Known possible issues](#known-possible-issues)
+5. [Publish to Azure](#publish-to-azure)
+6. [Limitations](#limitations)
 
 ## Quick Start
 
@@ -126,6 +127,70 @@ Example object-form asset pattern:
         ]
       }
     }
+  }
+}
+```
+
+<br/>
+
+## Migrating to v2
+
+The recommended way to migrate is to let Nx run the migrations automatically:
+
+```bash
+nx migrate @nxazure/func@latest
+nx migrate --run-migrations
+```
+
+This will apply all the necessary changes to your workspace. If you prefer to migrate manually (or if the automatic migration didn't run), follow the steps below for **each** function app project in your workspace.
+
+### 1. Merge `tsconfig.build.json` into `tsconfig.json`
+
+The build executor no longer reads `tsconfig.build.json`. All TypeScript configuration must live in `tsconfig.json`.
+
+1. Open `tsconfig.build.json` in your function app.
+2. Copy every `compilerOptions` entry into `tsconfig.json`. If the same key exists in both files, use the value from `tsconfig.build.json` (it was what the build was actually using). Skip `noEmitOnError`, `rootDir`, and `tsBuildInfoFile` — the build executor manages those automatically.
+3. Copy any top-level fields like `include`, `exclude`, or `files` into `tsconfig.json`. Again, if a conflict exists, prefer the `tsconfig.build.json` value.
+4. Make sure `compilerOptions.outDir` is set (e.g., `"dist"`).
+5. Delete `tsconfig.build.json`.
+
+### 2. Remove `_registerPaths.ts` and `tsconfig-paths`
+
+Runtime path registration has been replaced by a compile-time transformer. The plugin now rewrites import paths during the build, so `_registerPaths.ts` is no longer needed.
+
+1. Delete `_registerPaths.ts` from your function app root.
+2. If your `.eslintrc.json` references `_registerPaths.ts` in `ignorePatterns`, remove that entry.
+3. Remove `tsconfig-paths` from your workspace root `package.json` dependencies (if present).
+
+### 3. Clean up the app-level `package.json`
+
+The publish executor now automatically discovers runtime dependencies from your source code and injects them at publish time. You no longer need to list them in the app's `package.json`.
+
+1. Open the `package.json` in your function app.
+2. Remove any dependency that is directly imported in your source code (e.g., `@azure/functions`). The publish executor will handle these automatically.
+3. Keep any dependency that is **not** imported from your code — these are peer or indirect dependencies that you manage yourself.
+4. Add `"type": "module"` to the `package.json`.
+
+### Example
+
+Before:
+```json
+{
+  "name": "my-func-app",
+  "dependencies": {
+    "@azure/functions": "^4.0.0",
+    "some-manual-peer-dep": "^1.0.0"
+  }
+}
+```
+
+After (assuming `@azure/functions` is imported in your code and `some-manual-peer-dep` is not):
+```json
+{
+  "name": "my-func-app",
+  "type": "module",
+  "dependencies": {
+    "some-manual-peer-dep": "^1.0.0"
   }
 }
 ```
