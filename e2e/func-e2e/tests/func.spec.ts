@@ -9,14 +9,29 @@ import {
   uniq,
   updateFile,
 } from '@nx/plugin/testing';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import treeKill from 'tree-kill';
 
 const lib1 = 'lvl1lib';
 const lib2 = 'lvl2lib';
 const TEST_TIMEOUT = 180000;
+const WATCH_READY_MESSAGE = 'Found 0 errors. Watching for file changes.';
+const WATCH_REBUILD_MESSAGE = 'File change detected. Starting incremental compilation...';
+const FUNC_RUNTIME_READY_MESSAGE = 'For detailed output, run func with --verbose flag.';
+const WORKER_READY_MESSAGE = 'Worker process started and initialized.';
+const WATCH_READY_TIMEOUT = 60000;
+const WATCH_REBUILD_TIMEOUT = 30000;
+const WATCH_STABILITY_WINDOW = 5000;
+const NPM_EXECUTABLE = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 type TsConfigMutator = (tsconfig: { compilerOptions?: Record<string, unknown> }) => void;
+type PreparedProject = {
+  directory: string;
+  funcFilePath: string;
+  project: string;
+};
 
 const tsConfigScenarios = [
   {
@@ -90,6 +105,118 @@ const resetWorkspace = async () => {
   await runNxCommandAsync('reset');
 };
 
+const sleep = (durationMs: number) => new Promise(resolve => setTimeout(resolve, durationMs));
+
+const ANSI_ESCAPE_PREFIX = String.fromCharCode(27);
+
+const stripAnsi = (value: string) => value.replace(new RegExp(`${ANSI_ESCAPE_PREFIX}\\[[0-9;]*m`, 'g'), '');
+
+const countOccurrences = (value: string, needle: string) => value.split(needle).length - 1;
+
+const getOccurrenceIndex = (value: string, needle: string, occurrence: number) => {
+  if (occurrence < 1) return -1;
+
+  let fromIndex = 0;
+
+  for (let currentOccurrence = 1; currentOccurrence <= occurrence; currentOccurrence += 1) {
+    const matchIndex = value.indexOf(needle, fromIndex);
+    if (matchIndex === -1) return -1;
+    if (currentOccurrence === occurrence) return matchIndex;
+
+    fromIndex = matchIndex + needle.length;
+  }
+
+  return -1;
+};
+
+const getStartMessageCounts = (output: string) => ({
+  ready: countOccurrences(output, WATCH_READY_MESSAGE),
+  rebuild: countOccurrences(output, WATCH_REBUILD_MESSAGE),
+  worker: countOccurrences(output, WORKER_READY_MESSAGE),
+});
+
+const getOutputTail = (output: string) => output.slice(-4000);
+
+const getStartProcessEnv = () =>
+  Object.fromEntries(
+    Object.entries({
+      ...process.env,
+      CI: 'true',
+      FORCE_COLOR: '0',
+      NX_DAEMON: 'false',
+      NX_INTERACTIVE: 'false',
+    }).filter(([, value]) => value !== undefined),
+  ) as NodeJS.ProcessEnv;
+
+const waitForOutput = async (
+  child: ChildProcessWithoutNullStreams,
+  output: { value: string },
+  predicate: (data: string) => boolean,
+  description: string,
+  timeoutMs: number,
+) => {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < timeoutMs) {
+    if (predicate(output.value)) return;
+
+    if (child.exitCode !== null) {
+      throw new Error(`Start process exited before ${description}.\nOutput tail:\n${getOutputTail(output.value)}`);
+    }
+
+    await sleep(250);
+  }
+
+  throw new Error(`Timed out waiting for ${description}.\nOutput tail:\n${getOutputTail(output.value)}`);
+};
+
+const assertWatchMessagesAreStable = async (
+  child: ChildProcessWithoutNullStreams,
+  output: { value: string },
+  expectedCounts: ReturnType<typeof getStartMessageCounts>,
+  description: string,
+) => {
+  await sleep(WATCH_STABILITY_WINDOW);
+
+  if (child.exitCode !== null) {
+    throw new Error(`Start process exited while waiting for ${description}.\nOutput tail:\n${getOutputTail(output.value)}`);
+  }
+
+  expect(getStartMessageCounts(output.value)).toEqual(expectedCounts);
+};
+
+const stopChildProcess = async (child: ChildProcessWithoutNullStreams) => {
+  if (child.exitCode !== null || child.pid == null) return;
+
+  await new Promise<void>((resolve, reject) => {
+    treeKill(child.pid ?? 0, error => {
+      if (error) reject(error);
+      else resolve();
+    });
+  });
+
+  await Promise.race([new Promise<void>(resolve => child.once('exit', () => resolve())), sleep(5000)]);
+};
+
+const startFunctionApp = (project: string) => {
+  const output = { value: '' };
+  const child = spawn(`${NPM_EXECUTABLE} exec nx run ${project}:start`, {
+    cwd: tmpProjPath(),
+    env: getStartProcessEnv(),
+    shell: true,
+  });
+
+  child.stdout.on('data', data => {
+    output.value += stripAnsi(data.toString());
+  });
+
+  child.stderr.on('data', data => {
+    output.value += stripAnsi(data.toString());
+  });
+
+  return { child, output };
+};
+
 const updateProjectTsConfig = (directory: string, mutateTsConfig: TsConfigMutator) => {
   const tsconfigPath = `${directory}/tsconfig.json`;
   const tsconfig = readJson<Record<string, unknown>>(tsconfigPath) as {
@@ -109,7 +236,102 @@ const removeWorkspaceDevDependency = (dependencyName: string) => {
   updateFile('package.json', JSON.stringify(workspacePackageJson, null, 2));
 };
 
-const checkTheThing = async (project: string, directory: string, mutateTsConfig?: TsConfigMutator) => {
+const updateProjectPackageJson = (directory: string, mutatePackageJson: (packageJson: Record<string, unknown>) => void) => {
+  const packageJsonPath = `${directory}/package.json`;
+  const packageJson = readJson<Record<string, unknown>>(packageJsonPath);
+
+  mutatePackageJson(packageJson);
+  updateFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
+};
+
+const prepareProjectForStart = ({ directory, funcFilePath }: PreparedProject, moduleKind: unknown) => {
+  updateFile(
+    funcFilePath,
+    `
+import { app, type HttpRequest, type HttpResponseInit, type InvocationContext } from "@azure/functions";
+
+export async function hello(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+  return { body: 'watch stable' };
+};
+
+app.http('hello', {
+  methods: ['GET', 'POST'],
+  authLevel: 'anonymous',
+  handler: hello
+});
+  `,
+  );
+
+  if (moduleKind !== 'commonjs') return;
+
+  updateProjectPackageJson(directory, packageJson => {
+    packageJson.type = 'commonjs';
+  });
+};
+
+const addConsoleLogToHandler = (funcFilePath: string) => {
+  updateFile(funcFilePath, content => {
+    const handlerSignature = 'export async function hello(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {\n';
+    if (!content.includes(handlerSignature)) throw new Error(`Could not find hello handler in ${funcFilePath}.`);
+
+    return content.replace(handlerSignature, `${handlerSignature}  console.log('watch stability probe');\n`);
+  });
+};
+
+const assertStartExecutorWatchStability = async (preparedProject: PreparedProject, moduleKind: unknown) => {
+  prepareProjectForStart(preparedProject, moduleKind);
+
+  const { funcFilePath, project } = preparedProject;
+  const { child, output } = startFunctionApp(project);
+
+  try {
+    await waitForOutput(
+      child,
+      output,
+      data => data.includes(FUNC_RUNTIME_READY_MESSAGE) && data.includes(WATCH_READY_MESSAGE) && data.includes(WORKER_READY_MESSAGE),
+      'the function app to finish startup',
+      WATCH_READY_TIMEOUT,
+    );
+
+    const initialCounts = getStartMessageCounts(output.value);
+    await assertWatchMessagesAreStable(child, output, initialCounts, 'initial watch stability');
+
+    addConsoleLogToHandler(funcFilePath);
+
+    await waitForOutput(
+      child,
+      output,
+      data => {
+        const counts = getStartMessageCounts(data);
+        if (
+          counts.ready < initialCounts.ready + 1 ||
+          counts.rebuild < initialCounts.rebuild + 1 ||
+          counts.worker < initialCounts.worker + 1
+        )
+          return false;
+
+        const rebuildIndex = getOccurrenceIndex(data, WATCH_REBUILD_MESSAGE, initialCounts.rebuild + 1);
+        const readyIndex = getOccurrenceIndex(data, WATCH_READY_MESSAGE, initialCounts.ready + 1);
+        const workerIndex = getOccurrenceIndex(data, WORKER_READY_MESSAGE, initialCounts.worker + 1);
+
+        return rebuildIndex !== -1 && readyIndex > rebuildIndex && workerIndex > readyIndex;
+      },
+      'a single rebuild and worker restart after changing the function handler',
+      WATCH_REBUILD_TIMEOUT,
+    );
+
+    const rebuiltCounts = getStartMessageCounts(output.value);
+    expect(rebuiltCounts.ready).toBe(initialCounts.ready + 1);
+    expect(rebuiltCounts.rebuild).toBe(initialCounts.rebuild + 1);
+    expect(rebuiltCounts.worker).toBe(initialCounts.worker + 1);
+
+    await assertWatchMessagesAreStable(child, output, rebuiltCounts, 'post-rebuild watch stability');
+  } finally {
+    await stopChildProcess(child);
+  }
+};
+
+const checkTheThing = async (project: string, directory: string, mutateTsConfig?: TsConfigMutator): Promise<PreparedProject> => {
   const func = 'hello';
 
   await runNxCommandAsync(`g @nxazure/func:init ${project} --directory=${directory}`);
@@ -192,6 +414,8 @@ app.http('hello', {
     console.error('Build failed with error: ', e);
     throw e;
   }
+
+  return { directory, funcFilePath, project };
 };
 
 describe('Project initialization and build', () => {
@@ -276,15 +500,17 @@ describe('Project initialization and build', () => {
   );
 
   it.each(tsConfigScenarios)(
-    'should build a functions app with $name',
+    'should build a functions app with $name and keep watch stable',
     async ({ compilerOptions }) => {
       const project = uniq('func');
       const directory = `apps/${project}`;
 
-      await checkTheThing(project, directory, tsconfig => {
+      const preparedProject = await checkTheThing(project, directory, tsconfig => {
         tsconfig.compilerOptions ??= {};
         Object.assign(tsconfig.compilerOptions, compilerOptions);
       });
+
+      await assertStartExecutorWatchStability(preparedProject, compilerOptions.module);
     },
     TEST_TIMEOUT,
   );
