@@ -1,7 +1,7 @@
 import { getProjects, readJson, Tree, updateJson } from '@nx/devkit';
 import { color, FUNC_PACKAGE_NAME, GLOBAL_NAME } from '../../common';
 
-const buildManagedOptions = new Set(['noEmitOnError', 'rootDir', 'tsBuildInfoFile']);
+const buildManagedOptions = new Set(['noEmitOnError', 'rootDir', 'tsBuildInfoFile', 'paths']);
 const skippedTopLevelKeys = new Set(['extends', 'compilerOptions']);
 
 type TsConfig = {
