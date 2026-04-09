@@ -67,6 +67,20 @@ describe('merge-tsconfig-build migration', () => {
     expect(tsconfig.compilerOptions.tsBuildInfoFile).toBeUndefined();
   });
 
+  it('should not copy paths from tsconfig.build.json', () => {
+    tree.write(`${projectRoot}/tsconfig.json`, JSON.stringify({ compilerOptions: { strict: true } }));
+    tree.write(
+      `${projectRoot}/tsconfig.build.json`,
+      JSON.stringify({ compilerOptions: { outDir: 'dist', paths: { '@my-app/*': ['src/*'] } } }),
+    );
+
+    mergeTsconfigBuild(tree);
+
+    const tsconfig = readJson(tree, `${projectRoot}/tsconfig.json`);
+    expect(tsconfig.compilerOptions.paths).toBeUndefined();
+    expect(tsconfig.compilerOptions.outDir).toBe('dist');
+  });
+
   it('should set outDir to dist if missing from both files', () => {
     tree.write(`${projectRoot}/tsconfig.json`, JSON.stringify({ compilerOptions: { strict: true } }));
 
