@@ -125,12 +125,28 @@ const createTsConfigFiles = (tree: Tree, { appRoot, strict }: NormalizedOptions)
   tree.write(path.posix.join(appRoot, TS_CONFIG_WORKSPACE_FILE), JSON.stringify(workspaceTsConfig, null, 2));
 };
 
+// Preferred TypeScript language/module defaults this plugin provides for new function apps.
+// Applied per-field only when missing so existing base configs are preserved.
+const PREFERRED_BASE_COMPILER_OPTIONS: Record<string, unknown> = {
+  module: 'nodenext',
+  moduleDetection: 'force',
+  moduleResolution: 'nodenext',
+  resolvePackageJsonExports: true,
+  resolvePackageJsonImports: true,
+  target: 'esnext',
+};
+
 const updateBaseTsConfig = (tree: Tree) => {
   if (!tree.exists(TS_CONFIG_BASE_FILE)) tree.write(TS_CONFIG_BASE_FILE, '{}');
 
   updateJson<{ compilerOptions: CompilerOptions }>(tree, TS_CONFIG_BASE_FILE, json => {
     json.compilerOptions = json.compilerOptions || { baseUrl: '.' };
     json.compilerOptions.resolveJsonModule = true;
+
+    const compilerOptions = json.compilerOptions as unknown as Record<string, unknown>;
+    for (const [key, value] of Object.entries(PREFERRED_BASE_COMPILER_OPTIONS)) {
+      if (compilerOptions[key] === undefined) compilerOptions[key] = value;
+    }
 
     return json;
   });

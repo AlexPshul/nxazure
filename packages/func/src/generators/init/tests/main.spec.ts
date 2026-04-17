@@ -93,6 +93,12 @@ describe.each([
 
     const tsconfigObj = JSON.parse(tsconfig?.toString() || '{}');
     expect(tsconfigObj).toHaveProperty('compilerOptions.resolveJsonModule', true);
+    expect(tsconfigObj).toHaveProperty('compilerOptions.module', 'nodenext');
+    expect(tsconfigObj).toHaveProperty('compilerOptions.moduleDetection', 'force');
+    expect(tsconfigObj).toHaveProperty('compilerOptions.moduleResolution', 'nodenext');
+    expect(tsconfigObj).toHaveProperty('compilerOptions.resolvePackageJsonExports', true);
+    expect(tsconfigObj).toHaveProperty('compilerOptions.resolvePackageJsonImports', true);
+    expect(tsconfigObj).toHaveProperty('compilerOptions.target', 'esnext');
   });
 
   it('Project eslint config file', () => {
