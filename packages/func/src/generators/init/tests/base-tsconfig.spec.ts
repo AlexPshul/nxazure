@@ -43,7 +43,7 @@ describe('Base tsconfig language/module setup', () => {
   );
 
   it(
-    'preserves existing language/module settings already present in the base tsconfig',
+    'skips preferred defaults when any build-critical option is already set',
     async () => {
       const tree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
       tree.write(
@@ -64,10 +64,37 @@ describe('Base tsconfig language/module setup', () => {
       expect(compilerOptions.module).toBe('commonjs');
       expect(compilerOptions.moduleResolution).toBe('node');
       expect(compilerOptions.target).toBe('es2022');
-      // Missing options should still be filled in from the latest defaults.
-      expect(compilerOptions.moduleDetection).toBe('force');
-      expect(compilerOptions.resolvePackageJsonExports).toBe(true);
-      expect(compilerOptions.resolvePackageJsonImports).toBe(true);
+      // No preferred defaults should be added when build-critical options exist.
+      expect(compilerOptions.moduleDetection).toBeUndefined();
+      expect(compilerOptions.resolvePackageJsonExports).toBeUndefined();
+      expect(compilerOptions.resolvePackageJsonImports).toBeUndefined();
+      // resolveJsonModule is always set regardless.
+      expect(compilerOptions.resolveJsonModule).toBe(true);
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    'skips preferred defaults when only one build-critical option is set',
+    async () => {
+      const tree = createTreeWithEmptyWorkspace({ layout: 'apps-libs' });
+      tree.write(
+        'tsconfig.base.json',
+        JSON.stringify({
+          compilerOptions: {
+            target: 'es2020',
+            paths: {},
+          },
+        }),
+      );
+
+      await generator(tree, options);
+
+      const compilerOptions = readBaseCompilerOptions(tree);
+      expect(compilerOptions.target).toBe('es2020');
+      expect(compilerOptions.module).toBeUndefined();
+      expect(compilerOptions.moduleResolution).toBeUndefined();
+      expect(compilerOptions.moduleDetection).toBeUndefined();
       expect(compilerOptions.resolveJsonModule).toBe(true);
     },
     TEST_TIMEOUT,

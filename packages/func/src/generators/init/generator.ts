@@ -126,7 +126,8 @@ const createTsConfigFiles = (tree: Tree, { appRoot, strict }: NormalizedOptions)
 };
 
 // Preferred TypeScript language/module defaults this plugin provides for new function apps.
-// Applied per-field only when missing so existing base configs are preserved.
+// Only applied when no build-critical options are already configured so the init generator
+// never creates an incompatible base tsconfig (e.g. module: commonjs + moduleResolution: nodenext).
 const PREFERRED_BASE_COMPILER_OPTIONS: Record<string, unknown> = {
   module: 'nodenext',
   moduleDetection: 'force',
@@ -136,6 +137,8 @@ const PREFERRED_BASE_COMPILER_OPTIONS: Record<string, unknown> = {
   target: 'esnext',
 };
 
+const BUILD_CRITICAL_OPTIONS: (keyof CompilerOptions)[] = ['module', 'moduleResolution', 'target'];
+
 const updateBaseTsConfig = (tree: Tree) => {
   if (!tree.exists(TS_CONFIG_BASE_FILE)) tree.write(TS_CONFIG_BASE_FILE, '{}');
 
@@ -144,6 +147,9 @@ const updateBaseTsConfig = (tree: Tree) => {
     json.compilerOptions.resolveJsonModule = true;
 
     const compilerOptions = json.compilerOptions as unknown as Record<string, unknown>;
+    const hasBuildConfig = BUILD_CRITICAL_OPTIONS.some(key => compilerOptions[key] !== undefined);
+    if (hasBuildConfig) return json;
+
     for (const [key, value] of Object.entries(PREFERRED_BASE_COMPILER_OPTIONS)) {
       if (compilerOptions[key] === undefined) compilerOptions[key] = value;
     }
