@@ -209,6 +209,8 @@ After (assuming `@azure/functions` is imported in your code and `some-manual-pee
   }
 ```
 
+4. In many cases, running the function locally requires [Azurite](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite) to be running. This is a standard Azure Functions requirement and applies here as well.
+
 <br/>
 
 ## Publish to Azure
@@ -232,6 +234,8 @@ You can learn more about it on [Microsoft Learn](https://learn.microsoft.com/en-
 ```bash
 nx publish <local-app-name> -n <function-app-on-azure>
 ```
+
+> **Note:** In newer versions of [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local), the `func` binary is no longer bundled inside `node_modules`, so running `npx nx publish` will not work. Instead, make sure that both [NX](https://nx.dev/getting-started/installation) and [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools) are installed globally on your local machine, and that they are pre-installed on the image used in your CI/CD pipeline.
 
 4. Wait for the process to finish and the triggers to properly sync
 
