@@ -209,7 +209,7 @@ After (assuming `@azure/functions` is imported in your code and `some-manual-pee
   }
 ```
 
-4. In many cases, running the function locally requires [Azurite](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite) to be running. This is a standard Azure Functions requirement and applies here as well.
+4. In many cases, running the function locally requires [Azurite](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite) to be running. A common symptom is a `Connection refused (127.0.0.1:10000)` error on startup. This is a standard Azure Functions requirement and applies here as well.
 
 <br/>
 
