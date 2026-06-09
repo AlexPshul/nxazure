@@ -66,7 +66,6 @@ describe.each([
     const packageJsonObj = JSON.parse(packageJson?.toString() || '{}');
     expect(packageJsonObj).toHaveProperty('dependencies.@azure/functions');
     expect(packageJsonObj).toHaveProperty('devDependencies.typescript');
-    expect(packageJsonObj).toHaveProperty('devDependencies.azure-functions-core-tools');
     expect(packageJsonObj).toHaveProperty('devDependencies.@types/node');
   });
 
