@@ -12,7 +12,7 @@ const getInstallCommand = () => {
   const rawInstallCommand = getPackageManagerCommand().install;
 
   const packageManager = detectPackageManager();
-  return packageManager === 'pnpm' ? `${rawInstallCommand} --node-linker=hoisted` : rawInstallCommand;
+  return packageManager === 'pnpm' ? `${rawInstallCommand} --node-linker=hoisted --ignore-workspace` : rawInstallCommand;
 };
 
 const getConfiguredProjectRoot = (context: ExecutorContext) => {
