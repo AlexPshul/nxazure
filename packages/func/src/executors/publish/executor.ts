@@ -15,6 +15,27 @@ const getInstallCommand = () => {
   return packageManager === 'pnpm' ? `${rawInstallCommand} --node-linker=hoisted --ignore-workspace` : rawInstallCommand;
 };
 
+const resolvePublishName = (name?: string) => {
+  const publishName = name?.trim();
+  if (!publishName)
+    throw new Error(
+      'No Azure Function App name was provided. Pass -n <function-app-name> or set targets.publish.options.name in project.json.',
+    );
+
+  return publishName.replace(/\{([^{}]*)\}/g, (_match, environmentVariableName: string) => {
+    const normalizedEnvironmentVariableName = environmentVariableName.trim();
+    if (!normalizedEnvironmentVariableName) throw new Error('Azure Function App name contains an empty environment variable template.');
+
+    const environmentVariableValue = process.env[normalizedEnvironmentVariableName]?.trim();
+    if (!environmentVariableValue)
+      throw new Error(
+        `Environment variable [${normalizedEnvironmentVariableName}] is required by the Azure Function App name template.`,
+      );
+
+    return environmentVariableValue;
+  });
+};
+
 const getConfiguredProjectRoot = (context: ExecutorContext) => {
   const { projectName, projectsConfigurations } = context;
   if (!projectName) {
@@ -32,6 +53,7 @@ const getConfiguredProjectRoot = (context: ExecutorContext) => {
 };
 
 const executor: Executor<PublishExecutorSchema> = async (options, context) => {
+  const publishName = resolvePublishName(options.name);
   const runtimePackageCollector = createRuntimePackageCollector();
   const success = await build(context, runtimePackageCollector.customTransformers);
 
@@ -57,8 +79,8 @@ const executor: Executor<PublishExecutorSchema> = async (options, context) => {
     if (isVerbose) console.log(`Running ${target?.executor} command: ${installCommand}.`);
     execSync(installCommand, { stdio: 'inherit', cwd: appRoot });
 
-    const { name, additionalFlags } = options;
-    const publishCommand = `func azure functionapp publish ${name}${additionalFlags ? ` ${additionalFlags}` : ''}`;
+    const { additionalFlags } = options;
+    const publishCommand = `func azure functionapp publish ${publishName}${additionalFlags ? ` ${additionalFlags}` : ''}`;
     if (isVerbose) console.log(`Running ${target?.executor} command: ${publishCommand}.`);
     execWithRetry('Publish', publishCommand, { cwd: appRoot, stdio: 'inherit' });
   } finally {

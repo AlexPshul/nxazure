@@ -7,22 +7,17 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "The name of the function (on Azure) to execute.",
+      "description": "The Azure Function App name to publish to. Environment variable templates such as {FUNCTION_APP_ENV} are expanded before publishing.",
       "alias": "n",
       "$default": {
         "$source": "argv",
         "index": 0
-      },
-      "x-prompt": "What is the name of the function app on Azure?",
-      "x-priority": "important"
+      }
     },
     "additionalFlags": {
       "type": "string",
       "description": "Additional flags to pass to the func start command. (port, cors, etc.)",
       "x-prompt": "Are there any additional flags to start the Azure Functions runtime?"
     }
-  },
-  "required": [
-    "name"
-  ]
+  }
 }

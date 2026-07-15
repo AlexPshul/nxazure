@@ -26,6 +26,8 @@ const mockedDetectPackageManager = detectPackageManager as jest.MockedFunction<t
 const mockedExecSync = execSync as jest.MockedFunction<typeof execSync>;
 const mockedExecWithRetry = execWithRetry as jest.MockedFunction<typeof execWithRetry>;
 const mockedGetPackageManagerCommand = getPackageManagerCommand as jest.MockedFunction<typeof getPackageManagerCommand>;
+const publishEnvironmentVariable = 'NXAZURE_PUBLISH_TEST_ENVIRONMENT';
+const originalPublishEnvironmentValue = process.env[publishEnvironmentVariable];
 
 const runAfterTransformers = (workspaceRoot: string, appRoot: string, customTransformers?: CustomTransformers) => {
   const afterTransformers = (customTransformers?.after ?? []) as TransformerFactory<SourceFile>[];
@@ -244,6 +246,58 @@ describe('publish executor', () => {
     jest.clearAllMocks();
     tempDirs.forEach(dir => fs.rmSync(dir, { recursive: true, force: true }));
     tempDirs.length = 0;
+    if (originalPublishEnvironmentValue === undefined) delete process.env[publishEnvironmentVariable];
+    else process.env[publishEnvironmentVariable] = originalPublishEnvironmentValue;
+  });
+
+  it('uses the resolved publish name provided by Nx', async () => {
+    const { appRoot, appRootPath, workspaceRoot } = createWorkspace();
+
+    tempDirs.push(workspaceRoot);
+
+    await expect(executor({ name: 'azure-demo' }, createContext(workspaceRoot, appRoot))).resolves.toEqual({ success: true });
+
+    expect(mockedExecWithRetry).toHaveBeenCalledWith('Publish', 'func azure functionapp publish azure-demo', {
+      cwd: appRootPath,
+      stdio: 'inherit',
+    });
+  });
+
+  it('expands every environment variable template in the publish name', async () => {
+    const { appRoot, appRootPath, workspaceRoot } = createWorkspace();
+    process.env[publishEnvironmentVariable] = 'alex';
+
+    tempDirs.push(workspaceRoot);
+
+    await expect(
+      executor(
+        { name: `azure-demo-{${publishEnvironmentVariable}}-{${publishEnvironmentVariable}}` },
+        createContext(workspaceRoot, appRoot),
+      ),
+    ).resolves.toEqual({ success: true });
+
+    expect(mockedExecWithRetry).toHaveBeenCalledWith('Publish', 'func azure functionapp publish azure-demo-alex-alex', {
+      cwd: appRootPath,
+      stdio: 'inherit',
+    });
+  });
+
+  it.each([undefined, '', '   '])('fails before building when the publish name is missing or blank: %p', async name => {
+    await expect(executor({ name }, createContext('workspace-root', 'apps/demo-app'))).rejects.toThrow(
+      'No Azure Function App name was provided.',
+    );
+
+    expect(mockedBuild).not.toHaveBeenCalled();
+  });
+
+  it('fails before building when a publish name template variable is missing', async () => {
+    delete process.env[publishEnvironmentVariable];
+
+    await expect(
+      executor({ name: `azure-demo-{${publishEnvironmentVariable}}` }, createContext('workspace-root', 'apps/demo-app')),
+    ).rejects.toThrow(`Environment variable [${publishEnvironmentVariable}] is required`);
+
+    expect(mockedBuild).not.toHaveBeenCalled();
   });
 
   it('temporarily adds missing runtime dependencies during publish and restores the original app manifest', async () => {

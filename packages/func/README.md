@@ -229,15 +229,65 @@ az account set --subscription "<subscription ID or name>"
 
 You can learn more about it on [Microsoft Learn](https://learn.microsoft.com/en-us/cli/azure/authenticate-azure-cli).
 
-3. Use the name of your local NX app and the name of your existing function app on Azure to run the publish command:
+3. Configure the Azure Function App name once in the function app's `project.json`:
+
+```json
+{
+  "targets": {
+    "publish": {
+      "executor": "@nxazure/func:publish",
+      "options": {
+        "name": "my-cool-azure-function-name"
+      }
+    }
+  }
+}
+```
+
+To give each developer a separate function app, use environment variable templates in the name. Every `{VARIABLE_NAME}` token is replaced with that environment variable's value before publishing:
+
+```json
+{
+  "targets": {
+    "publish": {
+      "executor": "@nxazure/func:publish",
+      "options": {
+        "name": "my-cool-azure-function-name-{NXAZURE_FUNCTION_APP_ENV}"
+      }
+    }
+  }
+}
+```
+
+Nx loads target-specific environment files, so each developer can create an ignored `.env.publish.local` file in the function app's root:
+
+```dotenv
+NXAZURE_FUNCTION_APP_ENV=alex
+```
+
+Publish then uses the configured name:
+
+```bash
+nx publish <local-app-name>
+```
+
+4. To publish a single app with a different deployed Azure Function App name, use `-n` to override the configured name or provide one when it is not configured:
 
 ```bash
 nx publish <local-app-name> -n <function-app-on-azure>
 ```
 
+5. If several apps are configured with a publish name, publish them in parallel:
+
+```bash
+nx run-many -t publish
+```
+
+Missing, blank, or unresolved template values fail before the build starts.
+
 > **Note:** In newer versions of [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local), the `func` binary is no longer bundled inside `node_modules`, so running `npx nx publish` will not work. Instead, make sure that both [NX](https://nx.dev/getting-started/installation) and [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools) are installed globally on your local machine, and that they are pre-installed on the image used in your CI/CD pipeline.
 
-4. Wait for the process to finish and the triggers to properly sync
+6. Wait for the process to finish and the triggers to properly sync
 
 <br/>
 

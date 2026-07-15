@@ -1,4 +1,4 @@
 export interface PublishExecutorSchema {
-  name: string;
-  additionalFlags: string;
+  name?: string;
+  additionalFlags?: string;
 }
