@@ -1,7 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { createTemporaryAppPackageJsonManager } from './temporary-app-package-json';
+import { createPackageJsonDependencySync } from './package-json-dependency-sync';
 
 const createWorkspace = (workspacePackageJson: object, appPackageJson: object) => {
   const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'nxazure-func-temp-package-json-'));
@@ -18,7 +18,7 @@ const createWorkspace = (workspacePackageJson: object, appPackageJson: object) =
   };
 };
 
-describe('temporary app package.json manager', () => {
+describe('package.json dependency sync', () => {
   const tempDirs: string[] = [];
   let consoleLogSpy: jest.SpyInstance;
 
@@ -56,7 +56,7 @@ describe('temporary app package.json manager', () => {
     tempDirs.push(workspaceRoot);
     const originalAppPackageJson = fs.readFileSync(appPackageJsonPath, 'utf-8');
 
-    const manager = createTemporaryAppPackageJsonManager(workspaceRoot, appRoot, [
+    const manager = createPackageJsonDependencySync(workspaceRoot, appRoot, [
       'alpha',
       'beta/subpath',
       'cool-package/specific/sub-path',
@@ -104,7 +104,7 @@ describe('temporary app package.json manager', () => {
     tempDirs.push(workspaceRoot);
     const originalAppPackageJson = fs.readFileSync(appPackageJsonPath, 'utf-8');
 
-    const manager = createTemporaryAppPackageJsonManager(workspaceRoot, appRoot, ['alpha', 'missing-package/sub-path']);
+    const manager = createPackageJsonDependencySync(workspaceRoot, appRoot, ['alpha', 'missing-package/sub-path']);
 
     expect(manager.apply()).toBe(false);
 

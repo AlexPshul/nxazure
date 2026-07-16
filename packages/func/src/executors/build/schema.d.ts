@@ -5,7 +5,10 @@ export type AssetGlobPattern = {
   output: string;
 };
 
+export type PackageJsonDependencySync = 'none' | 'update' | 'install';
+
 export interface BuildExecutorSchema {
   assets?: (string | AssetGlobPattern)[];
   includeIgnoredAssetFiles?: boolean;
+  packageJsonDependencySync?: PackageJsonDependencySync;
 }

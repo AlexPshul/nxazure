@@ -22,6 +22,12 @@
       "type": "boolean",
       "description": "Include files that are ignored by .gitignore and .nxignore when copying assets.",
       "default": false
+    },
+    "packageJsonDependencySync": {
+      "type": "string",
+      "description": "Controls whether build syncs missing runtime dependencies from the workspace package.json into the function app package.json and optionally installs them.",
+      "enum": ["none", "update", "install"],
+      "default": "none"
     }
   },
   "required": [],

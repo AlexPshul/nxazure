@@ -133,6 +133,26 @@ Example object-form asset pattern:
 
 <br/>
 
+## Package.json dependency sync
+
+The build executor can persist the same runtime dependency collection that publish uses. By default, build does not mutate the function app's `package.json`.
+
+Pass `--packageJsonDependencySync=update` to copy missing runtime dependencies from the workspace root `package.json` into the function app's `package.json` after a successful build:
+
+```bash
+nx build my-func --packageJsonDependencySync=update
+```
+
+Pass `--packageJsonDependencySync=install` to update the function app's `package.json` and run the package manager install command in the function app folder:
+
+```bash
+nx build my-func --packageJsonDependencySync=install
+```
+
+The `install` mode leaves generated `node_modules` and lockfiles in place. Publish still uses a temporary dependency sync and cleans up after itself.
+
+<br/>
+
 ## Migrating to v2
 
 The recommended way to migrate is to let Nx run the migrations automatically:

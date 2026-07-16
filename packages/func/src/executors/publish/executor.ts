@@ -1,19 +1,9 @@
-import { detectPackageManager, Executor, ExecutorContext, getPackageManagerCommand } from '@nx/devkit';
-import { execSync } from 'child_process';
+import { Executor, ExecutorContext } from '@nx/devkit';
 import fs from 'fs';
 import path from 'path';
-import { build, execWithRetry } from '../common';
+import { build, createPackageJsonDependencySync, createRuntimePackageCollector, execWithRetry, installFunctionAppDependencies } from '../common';
 import { getLockfileSnapshots, restoreLockfiles } from './lockfile-snapshots';
-import { createRuntimePackageCollector } from './runtime-package-collector';
 import { PublishExecutorSchema } from './schema';
-import { createTemporaryAppPackageJsonManager } from './temporary-app-package-json';
-
-const getInstallCommand = () => {
-  const rawInstallCommand = getPackageManagerCommand().install;
-
-  const packageManager = detectPackageManager();
-  return packageManager === 'pnpm' ? `${rawInstallCommand} --node-linker=hoisted --ignore-workspace` : rawInstallCommand;
-};
 
 const resolvePublishName = (name?: string) => {
   const publishName = name?.trim();
@@ -67,24 +57,22 @@ const executor: Executor<PublishExecutorSchema> = async (options, context) => {
 
   const { isVerbose, cwd, target } = context;
   const appRoot = path.resolve(cwd, configuredProjectRoot);
-  const appPackageJsonManager = createTemporaryAppPackageJsonManager(cwd, appRoot, runtimePackageCollector.getCollectedPackages());
+  const packageJsonDependencySync = createPackageJsonDependencySync(cwd, appRoot, runtimePackageCollector.getCollectedPackages());
   const lockfileSnapshots = getLockfileSnapshots(appRoot);
 
   try {
     // This will temporarily add any missing dependencies to the app's package.json that were collected during the build step and that exist in the workspace package.json.
     // This is necessary to ensure that the published azure function has all the dependencies it needs to run, without requiring the user to manually add them to their package.json.
-    appPackageJsonManager.apply();
+    packageJsonDependencySync.apply();
 
-    const installCommand = getInstallCommand();
-    if (isVerbose) console.log(`Running ${target?.executor} command: ${installCommand}.`);
-    execSync(installCommand, { stdio: 'inherit', cwd: appRoot });
+    installFunctionAppDependencies(context, appRoot);
 
     const { additionalFlags } = options;
     const publishCommand = `func azure functionapp publish ${publishName}${additionalFlags ? ` ${additionalFlags}` : ''}`;
     if (isVerbose) console.log(`Running ${target?.executor} command: ${publishCommand}.`);
     execWithRetry('Publish', publishCommand, { cwd: appRoot, stdio: 'inherit' });
   } finally {
-    appPackageJsonManager.restore();
+    packageJsonDependencySync.restore();
     restoreLockfiles(lockfileSnapshots);
     fs.rmSync(path.join(appRoot, 'node_modules'), { recursive: true, force: true });
   }

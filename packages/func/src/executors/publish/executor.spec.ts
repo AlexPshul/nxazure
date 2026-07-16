@@ -7,10 +7,15 @@ jest.mock('child_process', () => ({
   execSync: jest.fn(),
 }));
 
-jest.mock('../common', () => ({
-  build: jest.fn(),
-  execWithRetry: jest.fn(),
-}));
+jest.mock('../common', () => {
+  const actual = jest.requireActual('../common');
+
+  return {
+    ...actual,
+    build: jest.fn(),
+    execWithRetry: jest.fn(),
+  };
+});
 
 import { detectPackageManager, ExecutorContext, getPackageManagerCommand } from '@nx/devkit';
 import { execSync } from 'child_process';
