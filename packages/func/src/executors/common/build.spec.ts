@@ -18,6 +18,7 @@ const createWorkspace = () => {
         compilerOptions: {
           module: 'esnext',
           moduleResolution: 'node',
+          ignoreDeprecations: '6.0',
           target: 'es2015',
         },
       },

@@ -10,7 +10,7 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "es2015",
-    "module": "esnext",
+    "module": "nodenext",
     "lib": ["es2017", "dom"],
     "isolatedModules": true,
     "skipLibCheck": true,
@@ -19,7 +19,9 @@
     "esModuleInterop": true,
     "paths": {
       "@nxazure/func": ["./packages/func/src/index.ts"]
-    }
+    },
+    "noUncheckedSideEffectImports": false,
+    "types": ["*"]
   },
   "exclude": ["node_modules", "tmp"]
 }

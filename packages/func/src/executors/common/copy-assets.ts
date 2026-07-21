@@ -45,7 +45,7 @@ const isMissingNxJsError = (error: unknown) => {
 
 const loadNxJsAssets = async () => {
   if (!nxJsAssetsPromise) {
-    nxJsAssetsPromise = import('@nx/js/src/utils/assets/copy-assets-handler.js').then(module => ({
+    nxJsAssetsPromise = import('@nx/js/src/utils/assets/copy-assets-handler').then(module => ({
       CopyAssetsHandler: module.CopyAssetsHandler as CopyAssetsHandlerFactory,
       defaultFileEventHandler: module.defaultFileEventHandler as DefaultFileEventHandler,
     }));
