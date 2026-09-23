@@ -1,21 +1,11 @@
-import { NxJsonConfiguration } from '@nx/devkit';
-import {
-  ensureNxProject,
-  readJson,
-  runCommand,
-  runCommandAsync,
-  runNxCommandAsync,
-  tmpProjPath,
-  uniq,
-  updateFile,
-} from '@nx/plugin/testing';
+import { readJson, runNxCommandAsync, tmpProjPath, uniq, updateFile } from '@nx/plugin/testing';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import treeKill from 'tree-kill';
+import { checkTheThing, type PreparedFunctionApp } from '../utils/function-app';
+import { resetWorkspace, setupWorkspace } from '../utils/workspace';
 
-const lib1 = 'lvl1lib';
-const lib2 = 'lvl2lib';
 const TEST_TIMEOUT = 180000;
 const WATCH_READY_MESSAGE = 'Found 0 errors. Watching for file changes.';
 const WATCH_REBUILD_MESSAGE = 'File change detected. Starting incremental compilation...';
@@ -26,12 +16,7 @@ const WATCH_REBUILD_TIMEOUT = 30000;
 const WATCH_STABILITY_WINDOW = 5000;
 const NPM_EXECUTABLE = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
-type TsConfigMutator = (tsconfig: { compilerOptions?: Record<string, unknown> }) => void;
-type PreparedProject = {
-  directory: string;
-  funcFilePath: string;
-  project: string;
-};
+type PreparedProject = PreparedFunctionApp;
 
 const tsConfigScenarios = [
   {
@@ -64,46 +49,6 @@ const tsConfigScenarios = [
   compilerOptions: Record<string, unknown>;
   name: string;
 }[];
-
-const setupWorkspace = async () => {
-  process.env.CI = 'true';
-  process.env.NX_DAEMON = 'false';
-  process.env.NX_INTERACTIVE = 'false';
-
-  console.log('Before all');
-  ensureNxProject('@nxazure/func', 'dist/packages/func');
-  runCommand('git init && git add -A', {});
-  console.log('After ensureNxProject');
-
-  const nxConfig = readJson<NxJsonConfiguration>('nx.json');
-  nxConfig.workspaceLayout = { appsDir: 'apps', libsDir: 'libs' };
-
-  updateFile('nx.json', JSON.stringify(nxConfig, null, 2));
-
-  console.log('Installing types');
-  runCommand('npm i @types/node@latest', {});
-
-  console.log('Generating libraries');
-  await runNxCommandAsync(`g @nx/js:library ${lib1} --directory=libs/${lib1} --bundler=none --linter=none --unitTestRunner=none`);
-  await runNxCommandAsync(`g @nx/js:library ${lib2} --directory=libs/${lib2} --bundler=none --linter=none --unitTestRunner=none`);
-
-  const libFilePath = `libs/${lib1}/src/lib/${lib1}.ts`;
-  updateFile(
-    libFilePath,
-    `
-import { ${lib2} } from '@proj/${lib2}';
-
-export function ${lib1}(): string {
-return ${lib2}();
-}
-      `,
-  );
-  console.log('Generated the libs and ready to test');
-};
-
-const resetWorkspace = async () => {
-  await runNxCommandAsync('reset');
-};
 
 const sleep = (durationMs: number) => new Promise(resolve => setTimeout(resolve, durationMs));
 
@@ -217,25 +162,6 @@ const startFunctionApp = (project: string) => {
   return { child, output };
 };
 
-const updateProjectTsConfig = (directory: string, mutateTsConfig: TsConfigMutator) => {
-  const tsconfigPath = `${directory}/tsconfig.json`;
-  const tsconfig = readJson<Record<string, unknown>>(tsconfigPath) as {
-    compilerOptions?: Record<string, unknown>;
-  };
-
-  mutateTsConfig(tsconfig);
-  updateFile(tsconfigPath, JSON.stringify(tsconfig, null, 2));
-};
-
-const removeWorkspaceDevDependency = (dependencyName: string) => {
-  const workspacePackageJson = readJson<Record<string, unknown>>('package.json') as {
-    devDependencies?: Record<string, string>;
-  };
-
-  delete workspacePackageJson.devDependencies?.[dependencyName];
-  updateFile('package.json', JSON.stringify(workspacePackageJson, null, 2));
-};
-
 const updateProjectPackageJson = (directory: string, mutatePackageJson: (packageJson: Record<string, unknown>) => void) => {
   const packageJsonPath = `${directory}/package.json`;
   const packageJson = readJson<Record<string, unknown>>(packageJsonPath);
@@ -331,93 +257,6 @@ const assertStartExecutorWatchStability = async (preparedProject: PreparedProjec
   }
 };
 
-const checkTheThing = async (project: string, directory: string, mutateTsConfig?: TsConfigMutator): Promise<PreparedProject> => {
-  const func = 'hello';
-
-  await runNxCommandAsync(`g @nxazure/func:init ${project} --directory=${directory}`);
-  await runNxCommandAsync(`g @nxazure/func:new ${func} --project=${project} --template="HTTP trigger"`);
-  removeWorkspaceDevDependency('azure-functions-core-tools');
-  await runCommandAsync('npm i');
-  if (mutateTsConfig) updateProjectTsConfig(directory, mutateTsConfig);
-
-  const funcFilePath = `${directory}/src/functions/${func}.ts`;
-
-  updateFile(
-    funcFilePath,
-    `
-import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
-import { ${lib1} } from "@proj/${lib1}";
-
-export async function hello(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
-  const name = request.query.get('name') || await request.text() || 'world';
-
-  return { body: ${lib1}() };
-};
-
-app.http('hello', {
-  methods: ['GET', 'POST'],
-  authLevel: 'anonymous',
-  handler: hello
-});
-  `,
-  );
-
-  const projectJsonPath = `${directory}/project.json`;
-  const projectConfig = readJson<Record<string, unknown>>(projectJsonPath) as {
-    targets: { build: { options?: Record<string, unknown> } };
-  };
-
-  projectConfig.targets.build.options ??= {};
-  projectConfig.targets.build.options.assets = [
-    `README.md`,
-    `${directory}/prompts/**/*.md`,
-    {
-      input: `${directory}/static`,
-      glob: '**/*.json',
-      output: 'static-assets',
-    },
-    {
-      input: `${directory}/scoped-static`,
-      glob: '**/*.json',
-      output: `${directory}/static-assets`,
-    },
-  ];
-
-  updateFile(projectJsonPath, JSON.stringify(projectConfig, null, 2));
-
-  const projectRoot = tmpProjPath(directory);
-
-  fs.mkdirSync(path.join(projectRoot, 'prompts', 'nested'), { recursive: true });
-  fs.mkdirSync(path.join(projectRoot, 'static', 'configs'), { recursive: true });
-  fs.mkdirSync(path.join(projectRoot, 'scoped-static', 'configs'), { recursive: true });
-  fs.writeFileSync(path.join(projectRoot, 'prompts', 'welcome.md'), 'prompt root');
-  fs.writeFileSync(path.join(projectRoot, 'prompts', 'nested', 'follow-up.md'), 'prompt nested');
-  fs.writeFileSync(path.join(projectRoot, 'static', 'app.json'), '{"name":"func"}');
-  fs.writeFileSync(path.join(projectRoot, 'static', 'configs', 'env.json'), '{"env":"test"}');
-  fs.writeFileSync(path.join(projectRoot, 'scoped-static', 'app.json'), '{"name":"func-scoped"}');
-  fs.writeFileSync(path.join(projectRoot, 'scoped-static', 'configs', 'env.json'), '{"env":"scoped-test"}');
-
-  console.log('Running build...');
-  try {
-    const buildResult = await runNxCommandAsync(`build ${project}`);
-    if (buildResult.stderr) console.error('Error: ', buildResult.stderr);
-
-    expect(buildResult.stdout).toContain(`<⚡> ["${project}"] Build is ready.`);
-    expect(fs.existsSync(path.join(projectRoot, 'dist', 'README.md'))).toBe(true);
-    expect(fs.existsSync(path.join(projectRoot, 'dist', directory, 'prompts', 'welcome.md'))).toBe(true);
-    expect(fs.existsSync(path.join(projectRoot, 'dist', directory, 'prompts', 'nested', 'follow-up.md'))).toBe(true);
-    expect(fs.existsSync(path.join(projectRoot, 'dist', 'static-assets', 'app.json'))).toBe(true);
-    expect(fs.existsSync(path.join(projectRoot, 'dist', 'static-assets', 'configs', 'env.json'))).toBe(true);
-    expect(fs.existsSync(path.join(projectRoot, 'dist', directory, 'static-assets', 'app.json'))).toBe(true);
-    expect(fs.existsSync(path.join(projectRoot, 'dist', directory, 'static-assets', 'configs', 'env.json'))).toBe(true);
-  } catch (e) {
-    console.error('Build failed with error: ', e);
-    throw e;
-  }
-
-  return { directory, funcFilePath, project };
-};
-
 describe('Project initialization and build', () => {
   // Setting up individual workspaces per
   // test can cause e2e runs to take a long time.
@@ -505,9 +344,11 @@ describe('Project initialization and build', () => {
       const project = uniq('func');
       const directory = `apps/${project}`;
 
-      const preparedProject = await checkTheThing(project, directory, tsconfig => {
-        tsconfig.compilerOptions ??= {};
-        Object.assign(tsconfig.compilerOptions, compilerOptions);
+      const preparedProject = await checkTheThing(project, directory, {
+        mutateTsConfig: tsconfig => {
+          tsconfig.compilerOptions ??= {};
+          Object.assign(tsconfig.compilerOptions, compilerOptions);
+        },
       });
 
       await assertStartExecutorWatchStability(preparedProject, compilerOptions.module);
