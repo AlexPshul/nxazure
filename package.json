@@ -33,7 +33,7 @@
     "husky": "^9.1.6",
     "is-ci": "^3.0.1",
     "jest": "30.3.0",
-    "jest-environment-jsdom": "30.0.5",
+    "jest-environment-jsdom": "30.3.0",
     "jest-util": "30.0.5",
     "jsonc-eslint-parser": "^2.4.0",
     "lint-staged": "^15.2.10",
@@ -52,5 +52,12 @@
     "glob": "^11.0.0",
     "tree-kill": "^1.2.2",
     "tslib": "^2.7.0"
+  },
+  "overrides": {
+    "nx": {
+      "axios": "^1.20.0",
+      "smol-toml": "^1.7.1",
+      "brace-expansion": "^5.0.12"
+    }
   }
 }
