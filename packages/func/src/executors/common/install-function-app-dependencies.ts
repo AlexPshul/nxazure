@@ -4,14 +4,12 @@ import fs from 'fs';
 import path from 'path';
 
 const findPnpmWorkspace = (workspaceRoot: string, appRoot: string) => {
+  const hasWorkspaceConfig = (directory: string) => fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'));
   let directory = appRoot;
-  while (true) {
-    if (fs.existsSync(path.join(directory, 'pnpm-workspace.yaml'))) return directory;
-    if (directory === workspaceRoot) return;
-    const parent = path.dirname(directory);
-    if (parent === directory) return;
-    directory = parent;
+  while (directory !== workspaceRoot && directory !== path.dirname(directory) && !hasWorkspaceConfig(directory)) {
+    directory = path.dirname(directory);
   }
+  return hasWorkspaceConfig(directory) ? directory : undefined;
 };
 
 const getPackageInstallCommand = (workspaceRoot: string, appRoot: string) => {

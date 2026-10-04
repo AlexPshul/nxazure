@@ -248,7 +248,9 @@ describe('build executor', () => {
       success: true,
     });
 
-    const packageJson = JSON.parse(fs.readFileSync(path.join(appRootPath, 'package.json'), 'utf-8')) as { dependencies: Record<string, string> };
+    const packageJson = JSON.parse(fs.readFileSync(path.join(appRootPath, 'package.json'), 'utf-8')) as {
+      dependencies: Record<string, string>;
+    };
     expect(packageJson.dependencies).toHaveProperty('alpha', '1.0.0');
     expect(mockedExecSync).toHaveBeenCalledWith(
       'pnpm install --workspace-packages=apps/demo-app --filter ./apps/demo-app --fail-if-no-match --node-linker=hoisted --config.shared-workspace-lockfile=false',

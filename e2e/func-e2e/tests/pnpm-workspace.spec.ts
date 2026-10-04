@@ -46,15 +46,17 @@ const preparePnpmBuild = async ({ directory, funcFilePath }: PreparedFunctionApp
   setInstallMode(directory);
 };
 
-const preparePnpmBuildWithImport = (packageName: string, exportName: string) => async ({ directory, funcFilePath }: PreparedFunctionApp) => {
-  updateFile(funcFilePath, content => {
-    const returnStatement = '  return { body:';
-    if (!content.includes(returnStatement)) throw new Error(`Could not find hello handler in ${funcFilePath}.`);
+const preparePnpmBuildWithImport =
+  (packageName: string, exportName: string) =>
+  async ({ directory, funcFilePath }: PreparedFunctionApp) => {
+    updateFile(funcFilePath, content => {
+      const returnStatement = '  return { body:';
+      if (!content.includes(returnStatement)) throw new Error(`Could not find hello handler in ${funcFilePath}.`);
 
-    return `import { ${exportName} } from '${packageName}';\n${content.replace(returnStatement, `  return { body: typeof ${exportName} +`)}`;
-  });
-  setInstallMode(directory);
-};
+      return `import { ${exportName} } from '${packageName}';\n${content.replace(returnStatement, `  return { body: typeof ${exportName} +`)}`;
+    });
+    setInstallMode(directory);
+  };
 
 describe('PNPM workspaces', () => {
   beforeAll(async () => {
@@ -107,7 +109,10 @@ describe('PNPM workspaces', () => {
       const firstAppRoot = tmpProjPath(firstDirectory);
       const secondAppRoot = tmpProjPath(secondDirectory);
 
-      expect(readJson<{ dependencies: Record<string, string> }>('package.json').dependencies).toMatchObject({ zod: '3.25.76', yaml: '2.9.0' });
+      expect(readJson<{ dependencies: Record<string, string> }>('package.json').dependencies).toMatchObject({
+        zod: '3.25.76',
+        yaml: '2.9.0',
+      });
       expect(firstDependencies).toHaveProperty('zod', '3.25.76');
       expect(firstDependencies).not.toHaveProperty('yaml');
       expect(secondDependencies).toHaveProperty('yaml', '2.9.0');
